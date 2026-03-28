@@ -14,9 +14,9 @@ export function calcBankerOffer(closedCases, openCount) {
 }
 
 // ─── Round open groups ─────────────────────────────────────────────────────
-// Defines how many cases to open before each banker offer.
-// With 9 total cases and 1 held, there are 8 to open.
-export const OPEN_GROUPS = [3, 2, 2, 1]; // sum = 8
+// Classic Deal or No Deal structure with 26 cases.
+// Player holds 1, leaving 25 to open across 10 banker-offer rounds.
+export const OPEN_GROUPS = [6, 5, 4, 3, 2, 1, 1, 1, 1, 1]; // sum = 25
 
 // ─── Player value color ────────────────────────────────────────────────────
 export function valueColor(value) {

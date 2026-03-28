@@ -125,20 +125,19 @@ export function useNBAApi() {
     [getPool, getAllPool]
   );
 
-  // Build the 9 cases for a round (randomly selected players at the position)
+  // Build the 26 cases for a round (randomly selected from the full player pool)
   const buildRoundCases = useCallback(
     (position, includeHistorical, usedIds = new Set()) => {
-      const pool =
-        position === '6th Man'
-          ? getAllPool(includeHistorical)
-          : getPool(position, includeHistorical);
+      // Always draw from the full pool regardless of position —
+      // this ensures we always have 26 unique players available.
+      const pool = getAllPool(includeHistorical);
 
       const available = pool.filter((p) => !usedIds.has(p.id));
-      // We need at least 9 players; if fewer, relax the usedIds filter
-      const source = available.length >= 9 ? available : pool;
-      return shuffle(source).slice(0, 9);
+      // If fewer than 26 available after deduplication, relax the usedIds filter
+      const source = available.length >= 26 ? available : pool;
+      return shuffle(source).slice(0, 26);
     },
-    [getPool, getAllPool]
+    [getAllPool]
   );
 
   return {

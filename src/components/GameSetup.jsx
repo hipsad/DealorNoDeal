@@ -22,11 +22,15 @@ export default function GameSetup({ onStart, loading }) {
             <span className="text-white font-semibold">PG → SG → SF → PF → C → 6th Man</span>
           </li>
           <li>
-            Nine mystery <span className="text-yellow-400 font-semibold">briefcases</span> appear.
-            Pick one to hold — it's your player for that position.
+            <span className="text-yellow-400 font-semibold">26 mystery briefcases</span> appear,
+            each hiding a random NBA player. A{' '}
+            <span className="text-white font-semibold">value ranking board</span> shows all 26
+            players sorted by career PPG — but you don't know which case holds which player.
+            Pick one briefcase to hold as your position starter.
           </li>
           <li>
-            Open the remaining cases in groups. The{' '}
+            Open the remaining cases in groups (6 → 5 → 4 → 3 → 2 → then 1 at a time). Each
+            reveal strikes a player from the board. The{' '}
             <span className="text-blue-400 font-semibold">Banker</span> will offer you a deal
             after each group.
           </li>
