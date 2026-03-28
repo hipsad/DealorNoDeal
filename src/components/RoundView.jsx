@@ -13,36 +13,34 @@ export default function RoundView({
   roundIndex,
   cases,
   onRoundComplete,
-  playerRoster,
+  playerRoster,   // object: { PG: player|null, SG: player|null, ... }
   computerRoster,
 }) {
   const [localCases, setLocalCases] = useState(() =>
     cases.map((c) => ({ ...c, opened: false }))
   );
-  const [heldIndex, setHeldIndex]       = useState(null);
-  const [phase, setPhase]               = useState('pick');
-  const [openCount, setOpenCount]       = useState(0);
-  const [groupIdx, setGroupIdx]         = useState(0);
+  const [heldIndex, setHeldIndex]         = useState(null);
+  const [phase, setPhase]                 = useState('pick');
+  const [openCount, setOpenCount]         = useState(0);
+  const [groupIdx, setGroupIdx]           = useState(0);
   const [openedInGroup, setOpenedInGroup] = useState(0);
-  const [offer, setOffer]               = useState(null);
-  const [dealAccepted, setDealAccepted] = useState(false);
-  const [finalPlayer, setFinalPlayer]   = useState(null);
+  const [offer, setOffer]                 = useState(null);
+  const [dealAccepted, setDealAccepted]   = useState(false);
+  const [finalPlayer, setFinalPlayer]     = useState(null);
 
-  const roundLabel = ROUND_LABELS[roundIndex];
-  const roundShort = ROUND_SHORT[roundIndex];
   const totalGroups = OPEN_GROUPS.length;
 
   // Ranked board for the sidebar (constant order, marks opened entries)
   const rankedBoard = buildRankedBoard(localCases);
 
-  // ── pick ────────────────────────────────────────────────────────────────
+  // ── pick ──────────────────────────────────────────────────────────────────
   function pickCase(index) {
     if (phase !== 'pick') return;
     setHeldIndex(index);
     setPhase('open');
   }
 
-  // ── open ────────────────────────────────────────────────────────────────
+  // ── open ──────────────────────────────────────────────────────────────────
   function openCase(index) {
     if (phase !== 'open') return;
     if (index === heldIndex || localCases[index].opened) return;
@@ -67,12 +65,12 @@ export default function RoundView({
     }
   }
 
-  // ── deal ────────────────────────────────────────────────────────────────
+  // ── deal ──────────────────────────────────────────────────────────────────
   function handleDeal() {
     const offerPlayer = {
       id: -1,
       name: `Banker's Offer (${offer} PPG avg)`,
-      position: roundShort,
+      position: 'ANY',
       value: offer,
       active: true,
       era: 'offer',
@@ -86,7 +84,7 @@ export default function RoundView({
     setPhase('reveal');
   }
 
-  // ── no deal ─────────────────────────────────────────────────────────────
+  // ── no deal ───────────────────────────────────────────────────────────────
   function handleNoDeal() {
     const nextGroupIdx = groupIdx + 1;
     setGroupIdx(nextGroupIdx);
@@ -104,8 +102,9 @@ export default function RoundView({
     }
   }
 
-  function handleContinue() {
-    onRoundComplete(finalPlayer);
+  // ── position assignment ───────────────────────────────────────────────────
+  function handleSlotPick(slotKey) {
+    onRoundComplete(finalPlayer, slotKey);
   }
 
   const needToOpen =
@@ -121,12 +120,11 @@ export default function RoundView({
           Round {roundIndex + 1} of 6
         </p>
         <h1 className="text-2xl font-extrabold text-white">
-          {roundLabel}{' '}
-          <span className="text-yellow-400">({roundShort})</span>
+          Pick Your Player
         </h1>
         {phase === 'pick' && (
           <p className="text-gray-300 text-sm">
-            Pick a briefcase to hold as your {roundShort}.
+            Choose a briefcase to hold — then open the rest to hear from the Banker.
           </p>
         )}
         {phase === 'open' && (
@@ -137,13 +135,15 @@ export default function RoundView({
           </p>
         )}
         {phase === 'reveal' && (
-          <p className="text-gray-300 text-sm">Your player for this round!</p>
+          <p className="text-gray-300 text-sm">
+            Player locked in — now choose a roster slot!
+          </p>
         )}
       </div>
 
       <div className="flex flex-col xl:flex-row gap-4">
 
-        {/* ── Left: Value Ranking Board ────────────────────────────────── */}
+        {/* ── Left: Value Ranking Board ──────────────────────────────────── */}
         <div className="xl:w-52 flex-shrink-0">
           <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
             <div className="bg-gray-700 px-3 py-1.5 text-center">
@@ -194,7 +194,7 @@ export default function RoundView({
           </div>
         </div>
 
-        {/* ── Center: Briefcases ──────────────────────────────────────── */}
+        {/* ── Center: Briefcases ────────────────────────────────────────── */}
         <div className="flex-1">
           {/* 26 briefcases in a responsive grid */}
           <div className="grid grid-cols-6 sm:grid-cols-7 gap-1.5 justify-items-center mb-3">
@@ -243,17 +243,16 @@ export default function RoundView({
             </div>
           )}
 
-          {/* Reveal panel */}
+          {/* Reveal + position-assignment panel */}
           {phase === 'reveal' && finalPlayer && (
-            <div className="mt-3 bg-gray-800 border-2 border-yellow-500 rounded-2xl p-5 text-center max-w-sm mx-auto shadow-xl shadow-yellow-500/10">
+            <div className="mt-3 bg-gray-800 border-2 border-yellow-500 rounded-2xl p-5 text-center max-w-md mx-auto shadow-xl shadow-yellow-500/10">
               <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">
                 {dealAccepted ? "Banker's Offer Accepted!" : 'Your pick!'}
               </p>
               <h2 className="text-white font-extrabold text-xl mb-1">
                 {finalPlayer.name}
               </h2>
-              <p className="text-gray-400 text-xs mb-2">
-                {finalPlayer.position} ·{' '}
+              <p className="text-gray-400 text-xs mb-1">
                 {finalPlayer.active ? 'Active' : finalPlayer.era}
               </p>
               <div
@@ -261,28 +260,54 @@ export default function RoundView({
               >
                 {finalPlayer.value} PPG
               </div>
-              <button
-                onClick={handleContinue}
-                className="bg-yellow-500 hover:bg-yellow-400 text-black font-extrabold text-base px-7 py-2.5 rounded-xl transition-colors shadow-lg"
-              >
-                {roundIndex < 5 ? 'Next Round →' : 'See Final Results 🏆'}
-              </button>
+
+              {/* Position-slot selector */}
+              <p className="text-gray-300 text-sm font-semibold mb-3">
+                Assign this player to a roster slot:
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {ROUND_SHORT.map((slotKey, idx) => {
+                  const alreadyFilled = Boolean(playerRoster[slotKey]);
+                  return (
+                    <button
+                      key={slotKey}
+                      onClick={() => !alreadyFilled && handleSlotPick(slotKey)}
+                      disabled={alreadyFilled}
+                      className={`py-2 px-1 rounded-xl font-bold text-sm transition-all border-2 ${
+                        alreadyFilled
+                          ? 'border-gray-700 bg-gray-700/40 text-gray-600 cursor-not-allowed'
+                          : 'border-yellow-500 bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500 hover:text-black cursor-pointer'
+                      }`}
+                    >
+                      <div className="text-xs font-extrabold">{slotKey}</div>
+                      <div style={{ fontSize: '0.6rem' }} className="opacity-70 leading-tight">
+                        {ROUND_LABELS[idx]}
+                      </div>
+                      {alreadyFilled && (
+                        <div style={{ fontSize: '0.55rem' }} className="text-gray-500 mt-0.5">
+                          ✓ Filled
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
 
-        {/* ── Right: Roster sidebar ───────────────────────────────────── */}
+        {/* ── Right: Roster sidebar ─────────────────────────────────────── */}
         <div className="xl:w-48 flex-shrink-0 space-y-3">
           <div className="bg-gray-800 rounded-xl p-3 border border-gray-700">
             <h3 className="text-yellow-400 font-bold text-xs uppercase tracking-wide mb-2">
               Your Roster
             </h3>
-            {ROUND_SHORT.map((pos, idx) => {
-              const player = playerRoster[idx];
+            {ROUND_SHORT.map((slotKey, idx) => {
+              const player = playerRoster[slotKey];
               return (
-                <div key={pos} className="flex items-center gap-2 mb-1.5">
+                <div key={slotKey} className="flex items-center gap-2 mb-1.5">
                   <span className="text-gray-400 text-xs w-10 flex-shrink-0">
-                    {ROUND_LABELS[idx].slice(0, 5)}
+                    {slotKey}
                   </span>
                   {player ? (
                     <div className="min-w-0">
@@ -293,10 +318,6 @@ export default function RoundView({
                         {player.value} PPG
                       </p>
                     </div>
-                  ) : idx === roundIndex ? (
-                    <span className="text-yellow-400 text-xs animate-pulse">
-                      Choosing…
-                    </span>
                   ) : (
                     <span className="text-gray-600 text-xs">—</span>
                   )}
@@ -309,10 +330,10 @@ export default function RoundView({
             <h3 className="text-red-400 font-bold text-xs uppercase tracking-wide mb-2">
               Computer's Team
             </h3>
-            {ROUND_SHORT.map((pos, idx) => (
-              <div key={pos} className="flex items-center gap-2 mb-1.5">
+            {ROUND_SHORT.map((slotKey, idx) => (
+              <div key={slotKey} className="flex items-center gap-2 mb-1.5">
                 <span className="text-gray-400 text-xs w-10 flex-shrink-0">
-                  {ROUND_LABELS[idx].slice(0, 5)}
+                  {slotKey}
                 </span>
                 <span className="text-gray-500 text-xs">🔒 Hidden</span>
               </div>
@@ -325,7 +346,7 @@ export default function RoundView({
       {phase === 'offer' && offer !== null && (
         <BankerOffer
           offer={offer}
-          roundLabel={roundLabel}
+          roundLabel={`Round ${roundIndex + 1}`}
           onDeal={handleDeal}
           onNoDeal={handleNoDeal}
         />

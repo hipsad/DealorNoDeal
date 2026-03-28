@@ -9,13 +9,17 @@ const PHASE_SETUP  = 'setup';
 const PHASE_ROUND  = 'round';
 const PHASE_RESULT = 'result';
 
+// Initial empty roster keyed by position slot
+const EMPTY_ROSTER = { PG: null, SG: null, SF: null, PF: null, C: null, '6th Man': null };
+
 export default function App() {
   const { loading, apiError, buildComputerRoster, buildRoundCases } = useNBAApi();
 
   const [phase, setPhase]               = useState(PHASE_SETUP);
   const [includeHistorical, setInclude] = useState(false);
   const [roundIndex, setRoundIndex]     = useState(0);
-  const [playerRoster, setPlayerRoster] = useState([]);
+  // playerRoster is now { PG: player|null, SG: player|null, ... }
+  const [playerRoster, setPlayerRoster] = useState(EMPTY_ROSTER);
   const [computerRoster, setComputerRoster] = useState([]);
   const [currentCases, setCurrentCases] = useState([]);
 
@@ -32,7 +36,7 @@ export default function App() {
     setInclude(includeHist);
     const compRoster = buildComputerRoster(includeHist);
     setComputerRoster(compRoster);
-    setPlayerRoster([]);
+    setPlayerRoster(EMPTY_ROSTER);
     setRoundIndex(0);
     const usedIds = new Set(compRoster.map((p) => p.id));
     const cases = buildCases(0, includeHist, usedIds);
@@ -40,8 +44,9 @@ export default function App() {
     setPhase(PHASE_ROUND);
   }
 
-  function handleRoundComplete(chosenPlayer) {
-    const newRoster = [...playerRoster, chosenPlayer];
+  // chosenPlayer: the player object; slotKey: which position slot they are assigned to
+  function handleRoundComplete(chosenPlayer, slotKey) {
+    const newRoster = { ...playerRoster, [slotKey]: chosenPlayer };
     setPlayerRoster(newRoster);
     const nextRoundIndex = roundIndex + 1;
 
@@ -49,9 +54,10 @@ export default function App() {
       setPhase(PHASE_RESULT);
     } else {
       setRoundIndex(nextRoundIndex);
+      const filledPlayers = Object.values(newRoster).filter(Boolean);
       const usedIds = new Set([
         ...computerRoster.map((p) => p.id),
-        ...newRoster.map((p) => p.id),
+        ...filledPlayers.map((p) => p.id),
       ]);
       const cases = buildCases(nextRoundIndex, includeHistorical, usedIds);
       setCurrentCases(cases);
@@ -60,7 +66,7 @@ export default function App() {
 
   function handlePlayAgain() {
     setPhase(PHASE_SETUP);
-    setPlayerRoster([]);
+    setPlayerRoster(EMPTY_ROSTER);
     setComputerRoster([]);
     setRoundIndex(0);
     setCurrentCases([]);

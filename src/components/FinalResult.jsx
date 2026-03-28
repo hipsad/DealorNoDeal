@@ -2,7 +2,9 @@ import { calcTeamScore, formatScore, getWinner, valueColor } from '../utils/game
 import { ROUND_LABELS, ROUND_SHORT } from '../data/players';
 
 export default function FinalResult({ playerRoster, computerRoster, onPlayAgain }) {
-  const playerScore = calcTeamScore(playerRoster);
+  // playerRoster is now { PG: player|null, SG: player|null, ... }
+  const playerArray = ROUND_SHORT.map((slot) => playerRoster[slot] ?? null);
+  const playerScore = calcTeamScore(playerArray);
   const compScore   = calcTeamScore(computerRoster);
   const winner      = getWinner(playerScore, compScore);
 
@@ -43,7 +45,7 @@ export default function FinalResult({ playerRoster, computerRoster, onPlayAgain 
             🏀 Your Team
           </h2>
           <div className="space-y-3">
-            {playerRoster.map((player, idx) => (
+            {playerArray.map((player, idx) => (
               <RosterRow
                 key={idx}
                 posLabel={ROUND_LABELS[idx]}
@@ -102,7 +104,7 @@ export default function FinalResult({ playerRoster, computerRoster, onPlayAgain 
               </tr>
             </thead>
             <tbody>
-              {playerRoster.map((player, idx) => {
+              {playerArray.map((player, idx) => {
                 const comp   = computerRoster[idx];
                 const youWin = player && comp && player.value > comp.value;
                 const compWin = player && comp && comp.value > player.value;
