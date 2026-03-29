@@ -27,6 +27,19 @@ export function valueColor(value) {
   return 'text-red-400';
 }
 
+// ─── Banker player selection ───────────────────────────────────────────────
+// Find the real player whose PPG is closest to the banker's offer,
+// excluding any player already in the current round's briefcases.
+export function findBankerPlayer(offer, allPlayers, casePlayerIds) {
+  const eligible = allPlayers.filter((p) => !casePlayerIds.has(p.id));
+  if (eligible.length === 0) return null;
+  return eligible.reduce(
+    (closest, p) =>
+      Math.abs(p.value - offer) < Math.abs(closest.value - offer) ? p : closest,
+    eligible[0]
+  );
+}
+
 // ─── Score comparison ──────────────────────────────────────────────────────
 export function calcTeamScore(roster) {
   return roster.reduce((s, p) => s + (p ? p.value : 0), 0);

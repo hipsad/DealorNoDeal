@@ -13,7 +13,7 @@ const PHASE_RESULT = 'result';
 const EMPTY_ROSTER = { PG: null, SG: null, SF: null, PF: null, C: null, '6th Man': null };
 
 export default function App() {
-  const { loading, apiError, buildComputerRoster, buildRoundCases } = useNBAApi();
+  const { loading, apiError, getAllPool, buildComputerRoster, buildRoundCases } = useNBAApi();
 
   const [phase, setPhase]               = useState(PHASE_SETUP);
   const [includeHistorical, setInclude] = useState(false);
@@ -92,6 +92,7 @@ export default function App() {
           onRoundComplete={handleRoundComplete}
           playerRoster={playerRoster}
           computerRoster={computerRoster}
+          allPlayers={getAllPool(includeHistorical)}
         />
       )}
 

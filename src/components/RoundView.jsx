@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Briefcase from './Briefcase';
 import BankerOffer from './BankerOffer';
-import { calcBankerOffer, OPEN_GROUPS, valueColor } from '../utils/gameLogic';
+import { calcBankerOffer, findBankerPlayer, OPEN_GROUPS, valueColor } from '../utils/gameLogic';
 import { ROUND_LABELS, ROUND_SHORT } from '../data/players';
 
 // Sort players by value descending for the ranking board
@@ -15,6 +15,7 @@ export default function RoundView({
   onRoundComplete,
   playerRoster,   // object: { PG: player|null, SG: player|null, ... }
   computerRoster,
+  allPlayers,     // full player pool for banker player selection
 }) {
   const [localCases, setLocalCases] = useState(() =>
     cases.map((c) => ({ ...c, opened: false }))
@@ -27,6 +28,7 @@ export default function RoundView({
   const [offer, setOffer]                 = useState(null);
   const [dealAccepted, setDealAccepted]   = useState(false);
   const [finalPlayer, setFinalPlayer]     = useState(null);
+  const [bankerPlayer, setBankerPlayer]   = useState(null);
 
   const totalGroups = OPEN_GROUPS.length;
 
@@ -57,7 +59,13 @@ export default function RoundView({
     if (newGroupOpened >= OPEN_GROUPS[groupIdx]) {
       // End of group → banker offer
       const closed = updated.filter((c, i) => !c.opened && i !== heldIndex);
-      setOffer(calcBankerOffer(closed, newOpenCount));
+      const newOffer = calcBankerOffer(closed, newOpenCount);
+      setOffer(newOffer);
+      // Find a real player closest to the offer, not already in the round's cases
+      if (allPlayers && allPlayers.length > 0) {
+        const caseIds = new Set(cases.map((c) => c.player.id));
+        setBankerPlayer(findBankerPlayer(newOffer, allPlayers, caseIds));
+      }
       setOpenedInGroup(0);
       setPhase('offer');
     } else {
@@ -67,7 +75,9 @@ export default function RoundView({
 
   // ── deal ──────────────────────────────────────────────────────────────────
   function handleDeal() {
-    const offerPlayer = {
+    // Use the real player the banker identified; fall back to a synthetic player
+    // only if no real player could be found.
+    const offerPlayer = bankerPlayer || {
       id: -1,
       name: `Banker's Offer (${offer} PPG avg)`,
       position: 'ANY',
@@ -330,14 +340,28 @@ export default function RoundView({
             <h3 className="text-red-400 font-bold text-xs uppercase tracking-wide mb-2">
               Computer's Team
             </h3>
-            {ROUND_SHORT.map((slotKey, idx) => (
-              <div key={slotKey} className="flex items-center gap-2 mb-1.5">
-                <span className="text-gray-400 text-xs w-10 flex-shrink-0">
-                  {slotKey}
-                </span>
-                <span className="text-gray-500 text-xs">🔒 Hidden</span>
-              </div>
-            ))}
+            {ROUND_SHORT.map((slotKey, idx) => {
+              const player = computerRoster[idx];
+              return (
+                <div key={slotKey} className="flex items-center gap-2 mb-1.5">
+                  <span className="text-gray-400 text-xs w-10 flex-shrink-0">
+                    {slotKey}
+                  </span>
+                  {player ? (
+                    <div className="min-w-0">
+                      <p className="text-white text-xs font-semibold leading-tight truncate">
+                        {player.name}
+                      </p>
+                      <p className={`text-xs font-bold ${valueColor(player.value)}`}>
+                        {player.value} PPG
+                      </p>
+                    </div>
+                  ) : (
+                    <span className="text-gray-600 text-xs">—</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -346,6 +370,7 @@ export default function RoundView({
       {phase === 'offer' && offer !== null && (
         <BankerOffer
           offer={offer}
+          player={bankerPlayer}
           roundLabel={`Round ${roundIndex + 1}`}
           onDeal={handleDeal}
           onNoDeal={handleNoDeal}
