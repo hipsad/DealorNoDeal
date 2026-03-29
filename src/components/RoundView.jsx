@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Briefcase from './Briefcase';
 import BankerOffer from './BankerOffer';
-import { calcBankerOffer, OPEN_GROUPS, valueColor } from '../utils/gameLogic';
+import { calcBankerOffer, findBankerPlayer, OPEN_GROUPS, valueColor } from '../utils/gameLogic';
 import { ROUND_LABELS, ROUND_SHORT } from '../data/players';
 
 // Sort players by value descending for the ranking board
@@ -15,6 +15,7 @@ export default function RoundView({
   onRoundComplete,
   playerRoster,   // object: { PG: player|null, SG: player|null, ... }
   computerRoster,
+  allPlayers,     // full player pool for banker player selection
 }) {
   const [localCases, setLocalCases] = useState(() =>
     cases.map((c) => ({ ...c, opened: false }))
@@ -27,6 +28,7 @@ export default function RoundView({
   const [offer, setOffer]                 = useState(null);
   const [dealAccepted, setDealAccepted]   = useState(false);
   const [finalPlayer, setFinalPlayer]     = useState(null);
+  const [bankerPlayer, setBankerPlayer]   = useState(null);
 
   const totalGroups = OPEN_GROUPS.length;
 
@@ -57,7 +59,13 @@ export default function RoundView({
     if (newGroupOpened >= OPEN_GROUPS[groupIdx]) {
       // End of group → banker offer
       const closed = updated.filter((c, i) => !c.opened && i !== heldIndex);
-      setOffer(calcBankerOffer(closed, newOpenCount));
+      const newOffer = calcBankerOffer(closed, newOpenCount);
+      setOffer(newOffer);
+      // Find a real player closest to the offer, not already in the round's cases
+      if (allPlayers && allPlayers.length > 0) {
+        const caseIds = new Set(cases.map((c) => c.player.id));
+        setBankerPlayer(findBankerPlayer(newOffer, allPlayers, caseIds));
+      }
       setOpenedInGroup(0);
       setPhase('offer');
     } else {
@@ -67,7 +75,9 @@ export default function RoundView({
 
   // ── deal ──────────────────────────────────────────────────────────────────
   function handleDeal() {
-    const offerPlayer = {
+    // Use the real player the banker identified; fall back to a synthetic player
+    // only if no real player could be found.
+    const offerPlayer = bankerPlayer || {
       id: -1,
       name: `Banker's Offer (${offer} PPG avg)`,
       position: 'ANY',
@@ -346,6 +356,7 @@ export default function RoundView({
       {phase === 'offer' && offer !== null && (
         <BankerOffer
           offer={offer}
+          player={bankerPlayer}
           roundLabel={`Round ${roundIndex + 1}`}
           onDeal={handleDeal}
           onNoDeal={handleNoDeal}
