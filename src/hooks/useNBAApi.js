@@ -135,7 +135,17 @@ export function useNBAApi() {
       const available = pool.filter((p) => !usedIds.has(p.id));
       // If fewer than 26 available after deduplication, relax the usedIds filter
       const source = available.length >= 26 ? available : pool;
-      return shuffle(source).slice(0, 26);
+
+      // Skew distribution: guarantee MIN_LOW_PPG–(MIN_LOW_PPG + LOW_PPG_VARIANCE - 1)
+      // players under 15 PPG per round (currently 7 or 8 out of 26 cases).
+      const MIN_LOW_PPG_PLAYERS  = 7;
+      const LOW_PPG_PLAYER_VARIANCE = 2;
+      const lowPool  = shuffle(source.filter((p) => p.value < 15));
+      const highPool = shuffle(source.filter((p) => p.value >= 15));
+      const lowCount = MIN_LOW_PPG_PLAYERS + Math.floor(Math.random() * LOW_PPG_PLAYER_VARIANCE);
+      const pickedLow  = lowPool.slice(0, Math.min(lowCount, lowPool.length));
+      const pickedHigh = highPool.slice(0, 26 - pickedLow.length);
+      return shuffle([...pickedLow, ...pickedHigh]);
     },
     [getAllPool]
   );

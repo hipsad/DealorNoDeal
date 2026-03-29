@@ -4,9 +4,13 @@ import BankerOffer from './BankerOffer';
 import { calcBankerOffer, findBankerPlayer, OPEN_GROUPS, valueColor } from '../utils/gameLogic';
 import { ROUND_LABELS, ROUND_SHORT } from '../data/players';
 
-// Sort players by value descending for the ranking board
-function buildRankedBoard(cases) {
-  return [...cases].sort((a, b) => b.player.value - a.player.value);
+// Sort players by value descending for the ranking board.
+// The held case is moved to the bottom so its value stays hidden.
+function buildRankedBoard(cases, heldIdx) {
+  const sorted = [...cases].sort((a, b) => b.player.value - a.player.value);
+  if (heldIdx === null || heldIdx === undefined) return sorted;
+  const heldCase = cases[heldIdx];
+  return [...sorted.filter((c) => c !== heldCase), heldCase];
 }
 
 export default function RoundView({
@@ -32,8 +36,9 @@ export default function RoundView({
 
   const totalGroups = OPEN_GROUPS.length;
 
-  // Ranked board for the sidebar (constant order, marks opened entries)
-  const rankedBoard = buildRankedBoard(localCases);
+  // Ranked board for the sidebar (constant order, marks opened entries).
+  // Pass heldIndex so the held case is placed at the bottom until revealed.
+  const rankedBoard = buildRankedBoard(localCases, heldIndex);
 
   // ── pick ──────────────────────────────────────────────────────────────────
   function pickCase(index) {
@@ -165,20 +170,25 @@ export default function RoundView({
               {rankedBoard.map((c, rank) => {
                 const isOpened = c.opened;
                 const isHeld   = localCases.indexOf(c) === heldIndex;
+                // Keep held case hidden in all phases except 'reveal', so the
+                // player never knows their case's value until it is opened.
+                const isHidden = isHeld && phase !== 'reveal';
                 return (
                   <div
                     key={c.number}
                     className={`flex items-center gap-1.5 px-2 py-0.5 border-b border-gray-700/50 transition-opacity ${
-                      isOpened ? 'opacity-30' : ''
+                      isOpened && !isHidden ? 'opacity-30' : ''
                     }`}
                   >
                     <span className="text-gray-500 text-xs w-4 flex-shrink-0">
-                      {rank + 1}
+                      {isHidden ? '?' : rank + 1}
                     </span>
                     <div className="flex-1 min-w-0">
                       <span
                         className={`text-xs font-semibold truncate block ${
-                          isOpened
+                          isHidden
+                            ? 'text-blue-300 italic'
+                            : isOpened
                             ? 'line-through text-gray-500'
                             : isHeld
                             ? 'text-blue-300'
@@ -186,16 +196,16 @@ export default function RoundView({
                         }`}
                         style={{ fontSize: '0.6rem' }}
                       >
-                        {c.player.name}
+                        {isHidden ? '🔒 Your Case' : c.player.name}
                       </span>
                     </div>
                     <span
-                      className={`font-bold flex-shrink-0 ${valueColor(c.player.value)} ${
-                        isOpened ? 'line-through' : ''
-                      }`}
+                      className={`font-bold flex-shrink-0 ${
+                        isHidden ? 'text-blue-300' : valueColor(c.player.value)
+                      } ${isOpened && !isHidden ? 'line-through' : ''}`}
                       style={{ fontSize: '0.65rem' }}
                     >
-                      {c.player.value}
+                      {isHidden ? '?' : c.player.value}
                     </span>
                   </div>
                 );
@@ -270,6 +280,21 @@ export default function RoundView({
               >
                 {finalPlayer.value} PPG
               </div>
+
+              {/* Reveal what was hidden in the chosen case when a deal was accepted */}
+              {dealAccepted && heldIndex !== null && localCases[heldIndex] && (
+                <div className="mb-4 bg-gray-700/50 border border-gray-600 rounded-xl p-3">
+                  <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">
+                    Your case contained:
+                  </p>
+                  <p className="text-white font-bold text-sm">
+                    {localCases[heldIndex].player.name}
+                  </p>
+                  <p className={`text-lg font-black ${valueColor(localCases[heldIndex].player.value)}`}>
+                    {localCases[heldIndex].player.value} PPG
+                  </p>
+                </div>
+              )}
 
               {/* Position-slot selector */}
               <p className="text-gray-300 text-sm font-semibold mb-3">
