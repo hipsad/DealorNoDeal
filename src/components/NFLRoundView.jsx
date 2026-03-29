@@ -1,53 +1,54 @@
 import { useState } from 'react';
 import Briefcase from './Briefcase';
 import BankerOffer from './BankerOffer';
-import { calcBankerOffer, findBankerPlayer, OPEN_GROUPS, valueColor } from '../utils/gameLogic';
-import { ROUND_LABELS, ROUND_SHORT } from '../data/players';
+import { calcBankerOffer, OPEN_GROUPS } from '../utils/gameLogic';
+import {
+  nflValueColor,
+  nflStatLabel,
+  findNFLBankerPlayer,
+  formatNFLStat,
+} from '../utils/nflGameLogic';
+import { NFL_ROUND_LABELS, NFL_ROUND_SHORT } from '../data/nflPlayers';
 
-// Sort all players by value descending for the ranking board.
-// No special treatment for the held case — the board never reveals
-// which entry the player is holding.
 function buildRankedBoard(cases) {
   return [...cases].sort((a, b) => b.player.value - a.player.value);
 }
 
-export default function RoundView({
+export default function NFLRoundView({
   roundIndex,
   cases,
   onRoundComplete,
-  playerRoster,   // object: { PG: player|null, SG: player|null, ... }
+  playerRoster,
   computerRoster,
-  allPlayers,     // full player pool for banker player selection
+  positionPool, // full position pool for this round (for banker player lookup)
 }) {
-  const [localCases, setLocalCases] = useState(() =>
+  const position = NFL_ROUND_SHORT[roundIndex];
+  const statLbl  = nflStatLabel(position);
+  const colorFn  = (v) => nflValueColor(position, v);
+
+  const [localCases, setLocalCases]         = useState(() =>
     cases.map((c) => ({ ...c, opened: false }))
   );
-  const [heldIndex, setHeldIndex]         = useState(null);
-  const [phase, setPhase]                 = useState('pick');
-  const [openCount, setOpenCount]         = useState(0);
-  const [groupIdx, setGroupIdx]           = useState(0);
-  const [openedInGroup, setOpenedInGroup] = useState(0);
-  const [offer, setOffer]                 = useState(null);
-  const [dealAccepted, setDealAccepted]   = useState(false);
-  const [finalPlayer, setFinalPlayer]     = useState(null);
-  const [bankerPlayer, setBankerPlayer]   = useState(null);
-  // Track IDs of players already offered by the banker this round so each
-  // player is offered at most once per round.
+  const [heldIndex, setHeldIndex]           = useState(null);
+  const [phase, setPhase]                   = useState('pick');
+  const [openCount, setOpenCount]           = useState(0);
+  const [groupIdx, setGroupIdx]             = useState(0);
+  const [openedInGroup, setOpenedInGroup]   = useState(0);
+  const [offer, setOffer]                   = useState(null);
+  const [dealAccepted, setDealAccepted]     = useState(false);
+  const [finalPlayer, setFinalPlayer]       = useState(null);
+  const [bankerPlayer, setBankerPlayer]     = useState(null);
   const [offeredBankerIds, setOfferedBankerIds] = useState(new Set());
 
   const totalGroups = OPEN_GROUPS.length;
-
-  // Ranked board for the sidebar — pure PPG sort, no held-case indicator.
   const rankedBoard = buildRankedBoard(localCases);
 
-  // ── pick ──────────────────────────────────────────────────────────────────
   function pickCase(index) {
     if (phase !== 'pick') return;
     setHeldIndex(index);
     setPhase('open');
   }
 
-  // ── open ──────────────────────────────────────────────────────────────────
   function openCase(index) {
     if (phase !== 'open') return;
     if (index === heldIndex || localCases[index].opened) return;
@@ -62,37 +63,21 @@ export default function RoundView({
     setOpenCount(newOpenCount);
 
     if (newGroupOpened >= OPEN_GROUPS[groupIdx]) {
-      // End of group → banker offer
       const closed = updated.filter((c, i) => !c.opened && i !== heldIndex);
       const newOffer = calcBankerOffer(closed, newOpenCount);
       setOffer(newOffer);
-      // Find a real player for the offer, excluding ranking-board players,
-      // any player already offered by the banker this round, and any player
-      // already chosen in previous rounds.
-      if (allPlayers && allPlayers.length > 0) {
-        const chosenIds = Object.values(playerRoster)
-          .filter(Boolean)
-          .map((p) => p.id);
-        const excludedIds = new Set([
+
+      if (positionPool && positionPool.length > 0) {
+        const usedIds = new Set([
           ...cases.map((c) => c.player.id),
           ...offeredBankerIds,
-          ...chosenIds,
+          ...Object.values(playerRoster).filter(Boolean).map((p) => p.id),
         ]);
-        // Remaining unfilled roster positions drive what the banker can offer.
-        const availablePositions = ROUND_SHORT.filter(
-          (slot) => !playerRoster[slot]
-        );
-        const newBankerPlayer = findBankerPlayer(
-          newOffer,
-          allPlayers,
-          excludedIds,
-          availablePositions
-        );
-        setBankerPlayer(newBankerPlayer);
-        if (newBankerPlayer) {
-          setOfferedBankerIds((prev) => new Set([...prev, newBankerPlayer.id]));
-        }
+        const bp = findNFLBankerPlayer(newOffer, positionPool, usedIds);
+        setBankerPlayer(bp);
+        if (bp) setOfferedBankerIds((prev) => new Set([...prev, bp.id]));
       }
+
       setOpenedInGroup(0);
       setPhase('offer');
     } else {
@@ -100,35 +85,29 @@ export default function RoundView({
     }
   }
 
-  // ── deal ──────────────────────────────────────────────────────────────────
   function handleDeal() {
-    // Use the real player the banker identified; fall back to a synthetic player
-    // only if no real player could be found.
     const offerPlayer = bankerPlayer || {
       id: -1,
-      name: `Banker's Offer (${offer} PPG avg)`,
-      position: 'ANY',
+      name: `Banker's Offer (${offer} ${statLbl})`,
+      position,
       value: offer,
       active: true,
       era: 'offer',
     };
     setDealAccepted(true);
     setFinalPlayer(offerPlayer);
-    // Reveal held case visually
     setLocalCases((prev) =>
       prev.map((c, i) => (i === heldIndex ? { ...c, opened: true } : c))
     );
     setPhase('reveal');
   }
 
-  // ── no deal ───────────────────────────────────────────────────────────────
   function handleNoDeal() {
     const nextGroupIdx = groupIdx + 1;
     setGroupIdx(nextGroupIdx);
     setOffer(null);
 
     if (nextGroupIdx >= totalGroups) {
-      // All groups done — reveal held case and take it
       setLocalCases((prev) =>
         prev.map((c, i) => (i === heldIndex ? { ...c, opened: true } : c))
       );
@@ -139,14 +118,11 @@ export default function RoundView({
     }
   }
 
-  // ── position assignment ───────────────────────────────────────────────────
-  function handleSlotPick(slotKey) {
-    onRoundComplete(finalPlayer, slotKey);
+  function handleConfirm() {
+    onRoundComplete(finalPlayer, position);
   }
 
-  const needToOpen =
-    phase === 'open' ? OPEN_GROUPS[groupIdx] - openedInGroup : 0;
-
+  const needToOpen = phase === 'open' ? OPEN_GROUPS[groupIdx] - openedInGroup : 0;
   const openedCount = localCases.filter((c) => c.opened).length;
 
   return (
@@ -157,7 +133,8 @@ export default function RoundView({
           Round {roundIndex + 1} of 6
         </p>
         <h1 className="text-2xl font-extrabold text-white">
-          Pick Your Player
+          {NFL_ROUND_LABELS[roundIndex]}
+          <span className="text-green-400 ml-2 text-lg">— {statLbl}</span>
         </h1>
         {phase === 'pick' && (
           <p className="text-gray-300 text-sm">
@@ -173,18 +150,18 @@ export default function RoundView({
         )}
         {phase === 'reveal' && (
           <p className="text-gray-300 text-sm">
-            Player locked in — now choose a roster slot!
+            Player locked in — add them to your roster!
           </p>
         )}
       </div>
 
       <div className="flex flex-col xl:flex-row gap-4">
 
-        {/* ── Left: Value Ranking Board ──────────────────────────────────── */}
+        {/* ── Left: Value Ranking Board ───────────────────────────────────── */}
         <div className="xl:w-52 flex-shrink-0">
           <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
             <div className="bg-gray-700 px-3 py-1.5 text-center">
-              <span className="text-yellow-400 font-bold text-xs uppercase tracking-wide">
+              <span className="text-green-400 font-bold text-xs uppercase tracking-wide">
                 Player Rankings
               </span>
             </div>
@@ -206,10 +183,10 @@ export default function RoundView({
                     </span>
                   </div>
                   <span
-                    className={`font-bold flex-shrink-0 ${valueColor(c.player.value)}`}
+                    className={`font-bold flex-shrink-0 ${colorFn(c.player.value)}`}
                     style={{ fontSize: '0.65rem' }}
                   >
-                    {c.player.value}
+                    {formatNFLStat(position, c.player.value)}
                   </span>
                 </div>
               ))}
@@ -217,9 +194,8 @@ export default function RoundView({
           </div>
         </div>
 
-        {/* ── Center: Briefcases ────────────────────────────────────────── */}
+        {/* ── Center: Briefcases ───────────────────────────────────────────── */}
         <div className="flex-1">
-          {/* 26 briefcases in a responsive grid */}
           <div className="grid grid-cols-6 sm:grid-cols-7 gap-1.5 justify-items-center mb-3">
             {localCases.map((c, i) => (
               <Briefcase
@@ -228,6 +204,7 @@ export default function RoundView({
                 index={i}
                 phase={phase}
                 isHeld={i === heldIndex}
+                colorFn={colorFn}
                 onClick={
                   phase === 'pick'
                     ? pickCase
@@ -242,11 +219,11 @@ export default function RoundView({
           {/* Value color legend */}
           <div className="flex flex-wrap gap-2 justify-center text-xs mb-3">
             {[
-              { label: '25+ PPG', cls: 'text-emerald-400' },
-              { label: '20-24',   cls: 'text-green-400' },
-              { label: '15-19',   cls: 'text-yellow-400' },
-              { label: '10-14',   cls: 'text-orange-400' },
-              { label: '<10',     cls: 'text-red-400' },
+              { label: 'Elite',    cls: 'text-emerald-400' },
+              { label: 'Great',    cls: 'text-green-400' },
+              { label: 'Good',     cls: 'text-yellow-400' },
+              { label: 'Average',  cls: 'text-orange-400' },
+              { label: 'Low',      cls: 'text-red-400' },
             ].map(({ label, cls }) => (
               <span key={label} className={`${cls} font-semibold`}>
                 ■ {label}
@@ -266,9 +243,9 @@ export default function RoundView({
             </div>
           )}
 
-          {/* Reveal + position-assignment panel */}
+          {/* Reveal + confirm panel */}
           {phase === 'reveal' && finalPlayer && (
-            <div className="mt-3 bg-gray-800 border-2 border-yellow-500 rounded-2xl p-5 text-center max-w-md mx-auto shadow-xl shadow-yellow-500/10">
+            <div className="mt-3 bg-gray-800 border-2 border-green-500 rounded-2xl p-5 text-center max-w-md mx-auto shadow-xl shadow-green-500/10">
               <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">
                 {dealAccepted ? "Banker's Offer Accepted!" : 'Your pick!'}
               </p>
@@ -278,13 +255,11 @@ export default function RoundView({
               <p className="text-gray-400 text-xs mb-1">
                 {finalPlayer.active ? 'Active' : finalPlayer.era}
               </p>
-              <div
-                className={`text-4xl font-black ${valueColor(finalPlayer.value)} mb-4`}
-              >
-                {finalPlayer.value} PPG
+              <div className={`text-4xl font-black ${colorFn(finalPlayer.value)} mb-1`}>
+                {formatNFLStat(position, finalPlayer.value)}
               </div>
+              <p className="text-gray-500 text-xs mb-4">{statLbl}</p>
 
-              {/* Reveal what was hidden in the chosen case when a deal was accepted */}
               {dealAccepted && heldIndex !== null && localCases[heldIndex] && (
                 <div className="mb-4 bg-gray-700/50 border border-gray-600 rounded-xl p-3">
                   <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">
@@ -293,67 +268,47 @@ export default function RoundView({
                   <p className="text-white font-bold text-sm">
                     {localCases[heldIndex].player.name}
                   </p>
-                  <p className={`text-lg font-black ${valueColor(localCases[heldIndex].player.value)}`}>
-                    {localCases[heldIndex].player.value} PPG
+                  <p className={`text-lg font-black ${colorFn(localCases[heldIndex].player.value)}`}>
+                    {formatNFLStat(position, localCases[heldIndex].player.value)} {statLbl}
                   </p>
                 </div>
               )}
 
-              {/* Position-slot selector */}
               <p className="text-gray-300 text-sm font-semibold mb-3">
-                Assign this player to a roster slot:
+                Adding to your roster as{' '}
+                <span className="text-green-400 font-bold">{NFL_ROUND_LABELS[roundIndex]}</span>
               </p>
-              <div className="grid grid-cols-3 gap-2">
-                {ROUND_SHORT.map((slotKey, idx) => {
-                  const alreadyFilled = Boolean(playerRoster[slotKey]);
-                  return (
-                    <button
-                      key={slotKey}
-                      onClick={() => !alreadyFilled && handleSlotPick(slotKey)}
-                      disabled={alreadyFilled}
-                      className={`py-2 px-1 rounded-xl font-bold text-sm transition-all border-2 ${
-                        alreadyFilled
-                          ? 'border-gray-700 bg-gray-700/40 text-gray-600 cursor-not-allowed'
-                          : 'border-yellow-500 bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500 hover:text-black cursor-pointer'
-                      }`}
-                    >
-                      <div className="text-xs font-extrabold">{slotKey}</div>
-                      <div style={{ fontSize: '0.6rem' }} className="opacity-70 leading-tight">
-                        {ROUND_LABELS[idx]}
-                      </div>
-                      {alreadyFilled && (
-                        <div style={{ fontSize: '0.55rem' }} className="text-gray-500 mt-0.5">
-                          ✓ Filled
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+              <button
+                onClick={handleConfirm}
+                className="w-full py-3 px-4 rounded-xl font-bold text-base transition-all border-2 border-green-500 bg-green-500/10 text-green-400 hover:bg-green-500 hover:text-black cursor-pointer"
+              >
+                Add to Roster ✓
+              </button>
             </div>
           )}
         </div>
 
-        {/* ── Right: Roster sidebar ─────────────────────────────────────── */}
+        {/* ── Right: Roster sidebar ────────────────────────────────────────── */}
         <div className="xl:w-48 flex-shrink-0 space-y-3">
           <div className="bg-gray-800 rounded-xl p-3 border border-gray-700">
-            <h3 className="text-yellow-400 font-bold text-xs uppercase tracking-wide mb-2">
+            <h3 className="text-green-400 font-bold text-xs uppercase tracking-wide mb-2">
               Your Roster
             </h3>
-            {ROUND_SHORT.map((slotKey) => {
-              const player = playerRoster[slotKey];
+            {NFL_ROUND_SHORT.map((slot) => {
+              const player = playerRoster[slot];
+              const slotColor = (v) => nflValueColor(slot, v);
               return (
-                <div key={slotKey} className="flex items-center gap-2 mb-1.5">
+                <div key={slot} className="flex items-center gap-2 mb-1.5">
                   <span className="text-gray-400 text-xs w-10 flex-shrink-0">
-                    {slotKey}
+                    {slot}
                   </span>
                   {player ? (
                     <div className="min-w-0">
                       <p className="text-white text-xs font-semibold leading-tight truncate">
                         {player.name}
                       </p>
-                      <p className={`text-xs font-bold ${valueColor(player.value)}`}>
-                        {player.value} PPG
+                      <p className={`text-xs font-bold ${slotColor(player.value)}`}>
+                        {formatNFLStat(slot, player.value)} {nflStatLabel(slot)}
                       </p>
                     </div>
                   ) : (
@@ -368,20 +323,21 @@ export default function RoundView({
             <h3 className="text-red-400 font-bold text-xs uppercase tracking-wide mb-2">
               Computer's Team
             </h3>
-            {ROUND_SHORT.map((slotKey, idx) => {
+            {NFL_ROUND_SHORT.map((slot, idx) => {
               const player = computerRoster[idx];
+              const slotColor = (v) => nflValueColor(slot, v);
               return (
-                <div key={slotKey} className="flex items-center gap-2 mb-1.5">
+                <div key={slot} className="flex items-center gap-2 mb-1.5">
                   <span className="text-gray-400 text-xs w-10 flex-shrink-0">
-                    {slotKey}
+                    {slot}
                   </span>
                   {player ? (
                     <div className="min-w-0">
                       <p className="text-white text-xs font-semibold leading-tight truncate">
                         {player.name}
                       </p>
-                      <p className={`text-xs font-bold ${valueColor(player.value)}`}>
-                        {player.value} PPG
+                      <p className={`text-xs font-bold ${slotColor(player.value)}`}>
+                        {formatNFLStat(slot, player.value)} {nflStatLabel(slot)}
                       </p>
                     </div>
                   ) : (
@@ -399,10 +355,12 @@ export default function RoundView({
         <BankerOffer
           offer={offer}
           player={bankerPlayer}
-          roundLabel={`Round ${roundIndex + 1}`}
+          roundLabel={NFL_ROUND_LABELS[roundIndex]}
           eliminatedPlayers={localCases.filter((c) => c.opened).map((c) => c.player)}
           onDeal={handleDeal}
           onNoDeal={handleNoDeal}
+          colorFn={colorFn}
+          statLabel={statLbl}
         />
       )}
     </div>
