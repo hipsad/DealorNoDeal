@@ -1,5 +1,6 @@
 // NBA Player dataset. For active players, value = recent season PPG (2024-25).
-// For historical/retired players, value = career PPG.
+// For historical/retired players, value = best single-season PPG.
+// The `era` field on historical players shows the year of the featured season.
 // active = currently playing in the NBA
 // position = primary position (PG, SG, SF, PF, C)
 
@@ -31,19 +32,19 @@ export const PLAYERS = [
   { id: 132, name: "D'Angelo Russell",       position: 'PG', value: 14.9, active: true,  era: '2020s' },
 
   // ─── POINT GUARDS (historical) ───────────────────────────────────────────
-  { id: 1,  name: 'Magic Johnson',           position: 'PG', value: 19.5, active: false, era: '1980s' },
-  { id: 2,  name: 'Isiah Thomas',            position: 'PG', value: 19.2, active: false, era: '1980s' },
-  { id: 3,  name: 'John Stockton',           position: 'PG', value: 13.1, active: false, era: '1990s' },
-  { id: 4,  name: 'Gary Payton',             position: 'PG', value: 16.3, active: false, era: '1990s' },
-  { id: 5,  name: 'Allen Iverson',           position: 'PG', value: 26.7, active: false, era: '2000s' },
-  { id: 6,  name: 'Steve Nash',              position: 'PG', value: 14.3, active: false, era: '2000s' },
-  { id: 7,  name: 'Jason Kidd',              position: 'PG', value: 12.6, active: false, era: '2000s' },
-  { id: 8,  name: 'Tony Parker',             position: 'PG', value: 15.5, active: false, era: '2000s' },
-  { id: 11, name: 'Russell Westbrook',       position: 'PG', value: 21.4, active: false, era: '2010s' },
-  { id: 19, name: 'Walt Frazier',            position: 'PG', value: 18.9, active: false, era: '1970s' },
-  { id: 20, name: 'Bob Cousy',               position: 'PG', value: 18.4, active: false, era: '1950s' },
-  { id: 92, name: 'Tiny Archibald',          position: 'PG', value: 18.8, active: false, era: '1970s' },
-  { id: 93, name: 'Kevin Johnson',           position: 'PG', value: 17.9, active: false, era: '1990s' },
+  { id: 1,  name: 'Magic Johnson',           position: 'PG', value: 23.9, active: false, era: '1987' },
+  { id: 2,  name: 'Isiah Thomas',            position: 'PG', value: 21.3, active: false, era: '1984' },
+  { id: 3,  name: 'John Stockton',           position: 'PG', value: 17.8, active: false, era: '1991' },
+  { id: 4,  name: 'Gary Payton',             position: 'PG', value: 24.2, active: false, era: '2000' },
+  { id: 5,  name: 'Allen Iverson',           position: 'PG', value: 33.0, active: false, era: '2005' },
+  { id: 6,  name: 'Steve Nash',              position: 'PG', value: 18.8, active: false, era: '2006' },
+  { id: 7,  name: 'Jason Kidd',              position: 'PG', value: 17.3, active: false, era: '2001' },
+  { id: 8,  name: 'Tony Parker',             position: 'PG', value: 22.0, active: false, era: '2009' },
+  { id: 11, name: 'Russell Westbrook',       position: 'PG', value: 31.6, active: false, era: '2017' },
+  { id: 19, name: 'Walt Frazier',            position: 'PG', value: 23.2, active: false, era: '1972' },
+  { id: 20, name: 'Bob Cousy',               position: 'PG', value: 21.7, active: false, era: '1952' },
+  { id: 92, name: 'Tiny Archibald',          position: 'PG', value: 34.0, active: false, era: '1973' },
+  { id: 93, name: 'Kevin Johnson',           position: 'PG', value: 20.4, active: false, era: '1995' },
 
   // ─── SHOOTING GUARDS (active) ────────────────────────────────────────────
   { id: 28, name: 'James Harden',            position: 'SG', value: 16.1, active: true,  era: '2010s' },
@@ -66,19 +67,19 @@ export const PLAYERS = [
   { id: 138, name: 'Malik Monk',             position: 'SG', value: 16.9, active: true,  era: '2020s' },
 
   // ─── SHOOTING GUARDS (historical) ────────────────────────────────────────
-  { id: 21, name: 'Michael Jordan',          position: 'SG', value: 30.1, active: false, era: '1990s' },
-  { id: 22, name: 'Kobe Bryant',             position: 'SG', value: 25.0, active: false, era: '2000s' },
-  { id: 23, name: 'Jerry West',              position: 'SG', value: 27.0, active: false, era: '1960s' },
-  { id: 24, name: 'Clyde Drexler',           position: 'SG', value: 20.4, active: false, era: '1990s' },
-  { id: 25, name: 'Reggie Miller',           position: 'SG', value: 18.2, active: false, era: '1990s' },
-  { id: 26, name: 'Ray Allen',               position: 'SG', value: 18.9, active: false, era: '2000s' },
-  { id: 27, name: 'Dwyane Wade',             position: 'SG', value: 22.0, active: false, era: '2000s' },
-  { id: 33, name: 'Anfernee Hardaway',       position: 'SG', value: 14.7, active: false, era: '1990s' },
-  { id: 34, name: 'Manu Ginóbili',           position: 'SG', value: 13.3, active: false, era: '2000s' },
-  { id: 35, name: 'Pete Maravich',           position: 'SG', value: 24.2, active: false, era: '1970s' },
-  { id: 36, name: 'Hal Greer',               position: 'SG', value: 19.2, active: false, era: '1960s' },
-  { id: 101, name: 'Vince Carter',           position: 'SG', value: 16.7, active: false, era: '2000s' },
-  { id: 102, name: 'Tracy McGrady',          position: 'SG', value: 19.6, active: false, era: '2000s' },
+  { id: 21, name: 'Michael Jordan',          position: 'SG', value: 37.1, active: false, era: '1987' },
+  { id: 22, name: 'Kobe Bryant',             position: 'SG', value: 35.4, active: false, era: '2006' },
+  { id: 23, name: 'Jerry West',              position: 'SG', value: 31.2, active: false, era: '1970' },
+  { id: 24, name: 'Clyde Drexler',           position: 'SG', value: 27.2, active: false, era: '1989' },
+  { id: 25, name: 'Reggie Miller',           position: 'SG', value: 24.6, active: false, era: '1990' },
+  { id: 26, name: 'Ray Allen',               position: 'SG', value: 22.1, active: false, era: '2000' },
+  { id: 27, name: 'Dwyane Wade',             position: 'SG', value: 30.2, active: false, era: '2009' },
+  { id: 33, name: 'Anfernee Hardaway',       position: 'SG', value: 20.9, active: false, era: '1995' },
+  { id: 34, name: 'Manu Ginóbili',           position: 'SG', value: 19.5, active: false, era: '2008' },
+  { id: 35, name: 'Pete Maravich',           position: 'SG', value: 31.1, active: false, era: '1977' },
+  { id: 36, name: 'Hal Greer',               position: 'SG', value: 22.1, active: false, era: '1967' },
+  { id: 101, name: 'Vince Carter',           position: 'SG', value: 27.6, active: false, era: '2001' },
+  { id: 102, name: 'Tracy McGrady',          position: 'SG', value: 32.1, active: false, era: '2003' },
 
   // ─── SMALL FORWARDS (active) ─────────────────────────────────────────────
   { id: 37, name: 'LeBron James',            position: 'SF', value: 24.0, active: true,  era: '2000s' },
@@ -101,17 +102,17 @@ export const PLAYERS = [
   { id: 143, name: 'Royce O\'Neale',         position: 'SF', value: 9.2,  active: true,  era: '2020s' },
 
   // ─── SMALL FORWARDS (historical) ─────────────────────────────────────────
-  { id: 38, name: 'Larry Bird',              position: 'SF', value: 24.3, active: false, era: '1980s' },
-  { id: 39, name: 'Scottie Pippen',          position: 'SF', value: 16.1, active: false, era: '1990s' },
-  { id: 40, name: 'Julius Erving',           position: 'SF', value: 24.2, active: false, era: '1980s' },
-  { id: 41, name: 'Rick Barry',              position: 'SF', value: 23.2, active: false, era: '1970s' },
-  { id: 47, name: 'Elgin Baylor',            position: 'SF', value: 27.4, active: false, era: '1960s' },
-  { id: 48, name: 'John Havlicek',           position: 'SF', value: 20.8, active: false, era: '1970s' },
-  { id: 49, name: 'Dominique Wilkins',       position: 'SF', value: 24.8, active: false, era: '1990s' },
-  { id: 50, name: 'Alex English',            position: 'SF', value: 21.5, active: false, era: '1980s' },
-  { id: 51, name: 'Carmelo Anthony',         position: 'SF', value: 22.5, active: false, era: '2000s' },
-  { id: 109, name: 'Grant Hill',             position: 'SF', value: 17.0, active: false, era: '2000s' },
-  { id: 110, name: 'James Worthy',           position: 'SF', value: 17.6, active: false, era: '1980s' },
+  { id: 38, name: 'Larry Bird',              position: 'SF', value: 29.9, active: false, era: '1988' },
+  { id: 39, name: 'Scottie Pippen',          position: 'SF', value: 21.4, active: false, era: '1995' },
+  { id: 40, name: 'Julius Erving',           position: 'SF', value: 27.7, active: false, era: '1978' },
+  { id: 41, name: 'Rick Barry',              position: 'SF', value: 35.6, active: false, era: '1967' },
+  { id: 47, name: 'Elgin Baylor',            position: 'SF', value: 38.3, active: false, era: '1962' },
+  { id: 48, name: 'John Havlicek',           position: 'SF', value: 28.9, active: false, era: '1971' },
+  { id: 49, name: 'Dominique Wilkins',       position: 'SF', value: 30.3, active: false, era: '1986' },
+  { id: 50, name: 'Alex English',            position: 'SF', value: 28.4, active: false, era: '1983' },
+  { id: 51, name: 'Carmelo Anthony',         position: 'SF', value: 28.7, active: false, era: '2013' },
+  { id: 109, name: 'Grant Hill',             position: 'SF', value: 21.6, active: false, era: '1997' },
+  { id: 110, name: 'James Worthy',           position: 'SF', value: 19.7, active: false, era: '1988' },
 
   // ─── POWER FORWARDS (active) ─────────────────────────────────────────────
   { id: 60, name: 'Giannis Antetokounmpo',   position: 'PF', value: 30.4, active: true,  era: '2020s' },
@@ -133,18 +134,18 @@ export const PLAYERS = [
   { id: 148, name: 'Jaylin Williams',        position: 'PF', value: 8.5,  active: true,  era: '2020s' },
 
   // ─── POWER FORWARDS (historical) ─────────────────────────────────────────
-  { id: 53, name: 'Karl Malone',             position: 'PF', value: 25.0, active: false, era: '1990s' },
-  { id: 54, name: 'Charles Barkley',         position: 'PF', value: 22.1, active: false, era: '1990s' },
-  { id: 55, name: 'Tim Duncan',              position: 'PF', value: 19.0, active: false, era: '2000s' },
-  { id: 56, name: 'Dennis Rodman',           position: 'PF', value: 7.3,  active: false, era: '1990s' },
-  { id: 57, name: 'Bob Pettit',              position: 'PF', value: 26.4, active: false, era: '1950s' },
-  { id: 58, name: 'Kevin Garnett',           position: 'PF', value: 17.8, active: false, era: '2000s' },
-  { id: 59, name: 'Dirk Nowitzki',           position: 'PF', value: 20.7, active: false, era: '2000s' },
-  { id: 65, name: 'Elvin Hayes',             position: 'PF', value: 21.0, active: false, era: '1970s' },
-  { id: 66, name: 'Jerry Lucas',             position: 'PF', value: 17.0, active: false, era: '1960s' },
-  { id: 116, name: 'Chris Webber',           position: 'PF', value: 20.7, active: false, era: '2000s' },
-  { id: 117, name: 'Pau Gasol',              position: 'PF', value: 17.0, active: false, era: '2000s' },
-  { id: 118, name: 'Amar\'e Stoudemire',     position: 'PF', value: 18.9, active: false, era: '2000s' },
+  { id: 53, name: 'Karl Malone',             position: 'PF', value: 31.0, active: false, era: '1990' },
+  { id: 54, name: 'Charles Barkley',         position: 'PF', value: 28.3, active: false, era: '1988' },
+  { id: 55, name: 'Tim Duncan',              position: 'PF', value: 25.5, active: false, era: '2002' },
+  { id: 56, name: 'Dennis Rodman',           position: 'PF', value: 9.0,  active: false, era: '1989' },
+  { id: 57, name: 'Bob Pettit',              position: 'PF', value: 31.1, active: false, era: '1962' },
+  { id: 58, name: 'Kevin Garnett',           position: 'PF', value: 24.2, active: false, era: '2004' },
+  { id: 59, name: 'Dirk Nowitzki',           position: 'PF', value: 26.6, active: false, era: '2006' },
+  { id: 65, name: 'Elvin Hayes',             position: 'PF', value: 28.9, active: false, era: '1970' },
+  { id: 66, name: 'Jerry Lucas',             position: 'PF', value: 21.1, active: false, era: '1965' },
+  { id: 116, name: 'Chris Webber',           position: 'PF', value: 27.1, active: false, era: '2001' },
+  { id: 117, name: 'Pau Gasol',              position: 'PF', value: 18.8, active: false, era: '2008' },
+  { id: 118, name: 'Amar\'e Stoudemire',     position: 'PF', value: 25.3, active: false, era: '2011' },
 
   // ─── CENTERS (active) ────────────────────────────────────────────────────
   { id: 77, name: 'Joel Embiid',             position: 'C',  value: 23.8, active: true,  era: '2020s' },
@@ -168,20 +169,20 @@ export const PLAYERS = [
   { id: 155, name: 'Clint Capela',           position: 'C',  value: 11.5, active: true,  era: '2020s' },
 
   // ─── CENTERS (historical) ────────────────────────────────────────────────
-  { id: 69, name: 'Kareem Abdul-Jabbar',     position: 'C',  value: 24.6, active: false, era: '1980s' },
-  { id: 70, name: 'Wilt Chamberlain',        position: 'C',  value: 30.1, active: false, era: '1960s' },
-  { id: 71, name: "Shaquille O'Neal",        position: 'C',  value: 23.7, active: false, era: '2000s' },
-  { id: 72, name: 'Bill Russell',            position: 'C',  value: 15.1, active: false, era: '1960s' },
-  { id: 73, name: 'Hakeem Olajuwon',         position: 'C',  value: 21.8, active: false, era: '1990s' },
-  { id: 74, name: 'Patrick Ewing',           position: 'C',  value: 21.0, active: false, era: '1990s' },
-  { id: 75, name: 'David Robinson',          position: 'C',  value: 21.1, active: false, era: '1990s' },
-  { id: 76, name: 'Moses Malone',            position: 'C',  value: 20.3, active: false, era: '1980s' },
-  { id: 83, name: 'Willis Reed',             position: 'C',  value: 18.7, active: false, era: '1960s' },
-  { id: 84, name: 'Alonzo Mourning',         position: 'C',  value: 17.1, active: false, era: '1990s' },
-  { id: 85, name: 'Robert Parish',           position: 'C',  value: 14.5, active: false, era: '1980s' },
-  { id: 86, name: 'Vlade Divac',             position: 'C',  value: 11.8, active: false, era: '1990s' },
-  { id: 125, name: 'Bill Walton',            position: 'C',  value: 13.3, active: false, era: '1970s' },
-  { id: 126, name: 'Nate Thurmond',          position: 'C',  value: 15.0, active: false, era: '1960s' },
+  { id: 69, name: 'Kareem Abdul-Jabbar',     position: 'C',  value: 34.8, active: false, era: '1972' },
+  { id: 70, name: 'Wilt Chamberlain',        position: 'C',  value: 50.4, active: false, era: '1962' },
+  { id: 71, name: "Shaquille O'Neal",        position: 'C',  value: 29.7, active: false, era: '2000' },
+  { id: 72, name: 'Bill Russell',            position: 'C',  value: 18.9, active: false, era: '1962' },
+  { id: 73, name: 'Hakeem Olajuwon',         position: 'C',  value: 27.3, active: false, era: '1994' },
+  { id: 74, name: 'Patrick Ewing',           position: 'C',  value: 28.6, active: false, era: '1990' },
+  { id: 75, name: 'David Robinson',          position: 'C',  value: 29.8, active: false, era: '1994' },
+  { id: 76, name: 'Moses Malone',            position: 'C',  value: 31.1, active: false, era: '1982' },
+  { id: 83, name: 'Willis Reed',             position: 'C',  value: 21.7, active: false, era: '1970' },
+  { id: 84, name: 'Alonzo Mourning',         position: 'C',  value: 23.2, active: false, era: '1996' },
+  { id: 85, name: 'Robert Parish',           position: 'C',  value: 19.9, active: false, era: '1982' },
+  { id: 86, name: 'Vlade Divac',             position: 'C',  value: 14.4, active: false, era: '1991' },
+  { id: 125, name: 'Bill Walton',            position: 'C',  value: 18.6, active: false, era: '1977' },
+  { id: 126, name: 'Nate Thurmond',          position: 'C',  value: 22.0, active: false, era: '1968' },
 ];
 
 // Returns players filtered by position and active status
