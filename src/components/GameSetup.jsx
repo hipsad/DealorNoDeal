@@ -43,7 +43,7 @@ export default function GameSetup({ onStart, loading }) {
             original pick. Then assign the player to any open roster slot.
           </li>
           <li>
-            After all 6 rounds, your roster's total career PPG is compared to the{' '}
+            After all 6 rounds, your roster's total recent-season PPG is compared to the{' '}
             <span className="text-red-400 font-semibold">computer's hidden team</span>. Highest
             total wins!
           </li>

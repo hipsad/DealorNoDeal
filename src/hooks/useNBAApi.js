@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { PLAYERS, shuffle, pickRandom } from '../data/players';
+import { PLAYERS, shuffle } from '../data/players';
 
 // Map balldontlie position strings to our canonical positions
 const POS_MAP = {
@@ -107,22 +107,32 @@ export function useNBAApi() {
     [apiPlayers]
   );
 
-  // Build the computer's 6-player hidden roster (one per position + any for 6th man)
+  // Build the computer's 6-player hidden roster using tiered selection:
+  // 1-3 great players (≥24 PPG), 1-3 good-to-great players (14–23.9 PPG),
+  // and at least 2 weak players (<14 PPG).
   const buildComputerRoster = useCallback(
     (includeHistorical) => {
-      const positions = ['PG', 'SG', 'SF', 'PF', 'C'];
-      const roster = positions.map((pos) => {
-        const pool = getPool(pos, includeHistorical);
-        return pickRandom(pool, 1)[0];
-      });
-      // 6th man: pick from any position
       const allPool = getAllPool(includeHistorical);
-      const usedIds = new Set(roster.map((p) => p.id));
-      const sixthManPool = allPool.filter((p) => !usedIds.has(p.id));
-      roster.push(pickRandom(sixthManPool, 1)[0]);
+
+      const great = shuffle(allPool.filter((p) => p.value >= 24));
+      const good  = shuffle(allPool.filter((p) => p.value >= 14 && p.value < 24));
+      const weak  = shuffle(allPool.filter((p) => p.value < 14));
+
+      // Randomly choose how many great players (1-3); remaining non-weak slots fill with good
+      const greatCount = 1 + Math.floor(Math.random() * 3); // 1, 2, or 3
+      const goodCount  = 4 - greatCount; // 3, 2, or 1
+      const weakCount  = 2;
+
+      const pickedGreat = great.slice(0, greatCount);
+      const usedAfterGreat = new Set(pickedGreat.map((p) => p.id));
+      const pickedGood  = good.filter((p) => !usedAfterGreat.has(p.id)).slice(0, goodCount);
+      const usedAfterGood = new Set([...usedAfterGreat, ...pickedGood.map((p) => p.id)]);
+      const pickedWeak  = weak.filter((p) => !usedAfterGood.has(p.id)).slice(0, weakCount);
+
+      const roster = shuffle([...pickedGreat, ...pickedGood, ...pickedWeak]);
       return roster;
     },
-    [getPool, getAllPool]
+    [getAllPool]
   );
 
   // Build the 26 cases for a round (randomly selected from the full player pool)

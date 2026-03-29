@@ -62,10 +62,19 @@ export function findBankerPlayer(offer, allPlayers, excludedIds, availablePositi
   // Sort descending by PPG so atOrBelow[0] is the highest value ≤ offer.
   const sorted = [...eligible].sort((a, b) => b.value - a.value);
   const atOrBelow = sorted.filter((p) => p.value <= offer);
-  if (atOrBelow.length > 0) return atOrBelow[0];
+  if (atOrBelow.length > 0) {
+    // Randomly select among players within 0.5 PPG of the top match to add variety
+    const best = atOrBelow[0];
+    const nearEqual = atOrBelow.filter((p) => best.value - p.value <= 0.5);
+    return nearEqual[Math.floor(Math.random() * nearEqual.length)];
+  }
 
-  // All eligible players are above the offer — return the one closest to it.
-  return sorted[sorted.length - 1];
+  // All eligible players are above the offer — return the one closest to it,
+  // again randomising among players within 0.5 PPG of each other.
+  const aboveSorted = [...eligible].sort((a, b) => a.value - b.value);
+  const closest = aboveSorted[0];
+  const nearEqual = aboveSorted.filter((p) => p.value - closest.value <= 0.5);
+  return nearEqual[Math.floor(Math.random() * nearEqual.length)];
 }
 
 // ─── Score comparison ──────────────────────────────────────────────────────
