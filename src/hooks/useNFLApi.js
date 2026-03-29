@@ -120,11 +120,6 @@ export function useNFLApi() {
   const buildRoundCases = useCallback(
     (position, includeHistorical, usedIds = new Set()) => {
       let pool = getPool(position, includeHistorical);
-      // If the active-only pool is too small to fill 26 cases, automatically
-      // include historical players so the round always has a full set of cases.
-      if (pool.length < 26) {
-        pool = getPool(position, true);
-      }
       const available = pool.filter((p) => !usedIds.has(p.id));
       const source = available.length >= 26 ? available : pool;
 
