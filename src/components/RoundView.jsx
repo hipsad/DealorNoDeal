@@ -67,15 +67,17 @@ export default function RoundView({
       const closed = updated.filter((c, i) => !c.opened && i !== heldIndex);
       const newOffer = calcBankerOffer(closed, newOpenCount);
       setOffer(newOffer);
-      // Find a real player for the offer, excluding ranking-board players,
-      // any player already offered by the banker this round, and any player
-      // already chosen in previous rounds.
+      // Find a real player for the offer, excluding still-active (unopened)
+      // ranking-board players, any player already offered by the banker this
+      // round, and any player already chosen in previous rounds.  Opened
+      // cases are intentionally not excluded so the banker pool stays large
+      // enough in the later groups of a round.
       if (allPlayers && allPlayers.length > 0) {
         const chosenIds = Object.values(playerRoster)
           .filter(Boolean)
           .map((p) => p.id);
         const excludedIds = new Set([
-          ...cases.map((c) => c.player.id),
+          ...updated.filter((c) => !c.opened).map((c) => c.player.id),
           ...offeredBankerIds,
           ...chosenIds,
         ]);
