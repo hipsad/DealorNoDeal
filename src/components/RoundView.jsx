@@ -33,6 +33,9 @@ export default function RoundView({
   const [dealAccepted, setDealAccepted]   = useState(false);
   const [finalPlayer, setFinalPlayer]     = useState(null);
   const [bankerPlayer, setBankerPlayer]   = useState(null);
+  // Track IDs of players already offered by the banker this round so each
+  // player is offered at most once per round.
+  const [offeredBankerIds, setOfferedBankerIds] = useState(new Set());
 
   const totalGroups = OPEN_GROUPS.length;
 
@@ -66,10 +69,18 @@ export default function RoundView({
       const closed = updated.filter((c, i) => !c.opened && i !== heldIndex);
       const newOffer = calcBankerOffer(closed, newOpenCount);
       setOffer(newOffer);
-      // Find a real player closest to the offer, not already in the round's cases
+      // Find a real player for the offer, excluding ranking-board players and
+      // any player already offered by the banker this round.
       if (allPlayers && allPlayers.length > 0) {
-        const caseIds = new Set(cases.map((c) => c.player.id));
-        setBankerPlayer(findBankerPlayer(newOffer, allPlayers, caseIds));
+        const excludedIds = new Set([
+          ...cases.map((c) => c.player.id),
+          ...offeredBankerIds,
+        ]);
+        const newBankerPlayer = findBankerPlayer(newOffer, allPlayers, excludedIds);
+        setBankerPlayer(newBankerPlayer);
+        if (newBankerPlayer) {
+          setOfferedBankerIds((prev) => new Set([...prev, newBankerPlayer.id]));
+        }
       }
       setOpenedInGroup(0);
       setPhase('offer');
