@@ -185,7 +185,7 @@ function RosterRow({ posShort, player }) {
       <span className="text-gray-400 text-xs w-16">{posShort}</span>
       <div className="flex-1 min-w-0">
         <p className="text-white font-semibold text-sm truncate">{player.name}</p>
-        <p className="text-gray-500 text-xs">{player.active ? 'Active' : player.era}</p>
+        <p className="text-gray-500 text-xs">{player.active ? '2024-25 PPG' : player.era}</p>
       </div>
       <span className={`font-extrabold text-base ${valueColor(player.value)}`}>
         {player.value}
