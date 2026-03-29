@@ -192,21 +192,31 @@ export default function RoundView({
               {rankedBoard.map((c, rank) => (
                 <div
                   key={c.number}
-                  className="flex items-center gap-1.5 px-2 py-0.5 border-b border-gray-700/50"
+                  className={`flex items-center gap-1.5 px-2 py-0.5 border-b border-gray-700/50 ${
+                    c.opened ? 'opacity-40' : ''
+                  }`}
                 >
                   <span className="text-gray-500 text-xs w-4 flex-shrink-0">
-                    {rank + 1}
+                    {c.opened ? (
+                      <span className="text-red-500 font-bold" aria-label="Eliminated">✕</span>
+                    ) : (
+                      rank + 1
+                    )}
                   </span>
                   <div className="flex-1 min-w-0">
                     <span
-                      className="text-xs font-semibold truncate block text-white"
+                      className={`text-xs font-semibold truncate block ${
+                        c.opened ? 'line-through text-gray-500' : 'text-white'
+                      }`}
                       style={{ fontSize: '0.6rem' }}
                     >
                       {c.player.name}
                     </span>
                   </div>
                   <span
-                    className={`font-bold flex-shrink-0 ${valueColor(c.player.value)}`}
+                    className={`font-bold flex-shrink-0 ${
+                      c.opened ? 'text-gray-600' : valueColor(c.player.value)
+                    }`}
                     style={{ fontSize: '0.65rem' }}
                   >
                     {c.player.value}
