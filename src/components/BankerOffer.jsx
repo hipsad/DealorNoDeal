@@ -1,6 +1,7 @@
 import { valueColor } from '../utils/gameLogic';
 
-export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabel, eliminatedPlayers = [] }) {
+export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabel, eliminatedPlayers = [], colorFn, statLabel = 'PPG' }) {
+  const getColor = colorFn ?? valueColor;
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4">
       <div className="bg-gray-900 border-2 border-yellow-500 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl shadow-yellow-500/20 animate-in fade-in zoom-in duration-300">
@@ -18,13 +19,13 @@ export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabe
             <>
               <p className={`text-2xl font-extrabold text-white mb-1`}>{player.name}</p>
               <p className="text-gray-400 text-xs mb-2">{player.position}</p>
-              <span className={`text-5xl font-black ${valueColor(player.value)}`}>{player.value}</span>
-              <span className="text-gray-400 text-lg ml-2">PPG</span>
+              <span className={`text-5xl font-black ${getColor(player.value)}`}>{player.value}</span>
+              <span className="text-gray-400 text-lg ml-2">{statLabel}</span>
             </>
           ) : (
             <>
-              <span className={`text-5xl font-black ${valueColor(offer)}`}>{offer}</span>
-              <span className="text-gray-400 text-lg ml-2">PPG</span>
+              <span className={`text-5xl font-black ${getColor(offer)}`}>{offer}</span>
+              <span className="text-gray-400 text-lg ml-2">{statLabel}</span>
             </>
           )}
         </div>
@@ -39,7 +40,7 @@ export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabe
               {eliminatedPlayers.map((p) => (
                 <div key={p.id} className="flex items-center justify-between py-0.5">
                   <span className="text-gray-400 text-xs truncate mr-2">{p.name}</span>
-                  <span className={`text-xs font-bold flex-shrink-0 ${valueColor(p.value)}`}>
+                  <span className={`text-xs font-bold flex-shrink-0 ${getColor(p.value)}`}>
                     {p.value}
                   </span>
                 </div>
