@@ -28,16 +28,22 @@ export function valueColor(value) {
 }
 
 // ─── Banker player selection ───────────────────────────────────────────────
-// Find the real player whose PPG is closest to the banker's offer,
-// excluding any player already in the current round's briefcases.
-export function findBankerPlayer(offer, allPlayers, casePlayerIds) {
-  const eligible = allPlayers.filter((p) => !casePlayerIds.has(p.id));
+// Find the real player whose PPG best matches the banker's offer, excluding
+// any player in the provided exclusion set (ranking-board cases + already-
+// offered banker picks this round).  Prefers the highest-PPG player at or
+// below the offer ("roll down"); falls back to the closest player above the
+// offer only when every eligible player exceeds it.
+export function findBankerPlayer(offer, allPlayers, excludedIds) {
+  const eligible = allPlayers.filter((p) => !excludedIds.has(p.id));
   if (eligible.length === 0) return null;
-  return eligible.reduce(
-    (closest, p) =>
-      Math.abs(p.value - offer) < Math.abs(closest.value - offer) ? p : closest,
-    eligible[0]
-  );
+
+  // Sort descending by PPG so atOrBelow[0] is the highest value ≤ offer.
+  const sorted = [...eligible].sort((a, b) => b.value - a.value);
+  const atOrBelow = sorted.filter((p) => p.value <= offer);
+  if (atOrBelow.length > 0) return atOrBelow[0];
+
+  // All eligible players are above the offer — return the one closest to it.
+  return sorted[sorted.length - 1];
 }
 
 // ─── Score comparison ──────────────────────────────────────────────────────
