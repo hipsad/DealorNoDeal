@@ -68,12 +68,25 @@ export default function NFLRoundView({
       setOffer(newOffer);
 
       if (positionPool && positionPool.length > 0) {
+        // All players on the rankings board (in briefcases)
+        const casePlayerIds = new Set(cases.map((c) => c.player.id));
+        // Players whose briefcase has already been opened
+        const eliminatedIds = new Set(
+          updated.filter((c) => c.opened).map((c) => c.player.id),
+        );
+        // Players to skip entirely: held case, already-offered, already in roster
         const usedIds = new Set([
-          ...cases.map((c) => c.player.id),
+          ...(heldIndex !== null ? [cases[heldIndex].player.id] : []),
           ...offeredBankerIds,
           ...Object.values(playerRoster).filter(Boolean).map((p) => p.id),
         ]);
-        const bp = findNFLBankerPlayer(newOffer, positionPool, usedIds);
+        const bp = findNFLBankerPlayer(
+          newOffer,
+          positionPool,
+          usedIds,
+          casePlayerIds,
+          eliminatedIds,
+        );
         setBankerPlayer(bp);
         if (bp) setOfferedBankerIds((prev) => new Set([...prev, bp.id]));
       }
