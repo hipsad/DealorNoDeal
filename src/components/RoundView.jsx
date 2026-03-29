@@ -340,14 +340,28 @@ export default function RoundView({
             <h3 className="text-red-400 font-bold text-xs uppercase tracking-wide mb-2">
               Computer's Team
             </h3>
-            {ROUND_SHORT.map((slotKey, idx) => (
-              <div key={slotKey} className="flex items-center gap-2 mb-1.5">
-                <span className="text-gray-400 text-xs w-10 flex-shrink-0">
-                  {slotKey}
-                </span>
-                <span className="text-gray-500 text-xs">🔒 Hidden</span>
-              </div>
-            ))}
+            {ROUND_SHORT.map((slotKey, idx) => {
+              const player = computerRoster[idx];
+              return (
+                <div key={slotKey} className="flex items-center gap-2 mb-1.5">
+                  <span className="text-gray-400 text-xs w-10 flex-shrink-0">
+                    {slotKey}
+                  </span>
+                  {player ? (
+                    <div className="min-w-0">
+                      <p className="text-white text-xs font-semibold leading-tight truncate">
+                        {player.name}
+                      </p>
+                      <p className={`text-xs font-bold ${valueColor(player.value)}`}>
+                        {player.value} PPG
+                      </p>
+                    </div>
+                  ) : (
+                    <span className="text-gray-600 text-xs">—</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
