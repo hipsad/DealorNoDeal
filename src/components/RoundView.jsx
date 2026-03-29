@@ -4,13 +4,11 @@ import BankerOffer from './BankerOffer';
 import { calcBankerOffer, findBankerPlayer, OPEN_GROUPS, valueColor } from '../utils/gameLogic';
 import { ROUND_LABELS, ROUND_SHORT } from '../data/players';
 
-// Sort players by value descending for the ranking board.
-// The held case is moved to the bottom so its value stays hidden.
-function buildRankedBoard(cases, heldIdx) {
-  const sorted = [...cases].sort((a, b) => b.player.value - a.player.value);
-  if (heldIdx === null || heldIdx === undefined) return sorted;
-  const heldCase = cases[heldIdx];
-  return [...sorted.filter((c) => c !== heldCase), heldCase];
+// Sort all players by value descending for the ranking board.
+// No special treatment for the held case — the board never reveals
+// which entry the player is holding.
+function buildRankedBoard(cases) {
+  return [...cases].sort((a, b) => b.player.value - a.player.value);
 }
 
 export default function RoundView({
@@ -39,9 +37,8 @@ export default function RoundView({
 
   const totalGroups = OPEN_GROUPS.length;
 
-  // Ranked board for the sidebar (constant order, marks opened entries).
-  // Pass heldIndex so the held case is placed at the bottom until revealed.
-  const rankedBoard = buildRankedBoard(localCases, heldIndex);
+  // Ranked board for the sidebar — pure PPG sort, no held-case indicator.
+  const rankedBoard = buildRankedBoard(localCases);
 
   // ── pick ──────────────────────────────────────────────────────────────────
   function pickCase(index) {
@@ -69,14 +66,28 @@ export default function RoundView({
       const closed = updated.filter((c, i) => !c.opened && i !== heldIndex);
       const newOffer = calcBankerOffer(closed, newOpenCount);
       setOffer(newOffer);
-      // Find a real player for the offer, excluding ranking-board players and
-      // any player already offered by the banker this round.
+      // Find a real player for the offer, excluding ranking-board players,
+      // any player already offered by the banker this round, and any player
+      // already chosen in previous rounds.
       if (allPlayers && allPlayers.length > 0) {
+        const chosenIds = Object.values(playerRoster)
+          .filter(Boolean)
+          .map((p) => p.id);
         const excludedIds = new Set([
           ...cases.map((c) => c.player.id),
           ...offeredBankerIds,
+          ...chosenIds,
         ]);
-        const newBankerPlayer = findBankerPlayer(newOffer, allPlayers, excludedIds);
+        // Remaining unfilled roster positions drive what the banker can offer.
+        const availablePositions = ROUND_SHORT.filter(
+          (slot) => !playerRoster[slot]
+        );
+        const newBankerPlayer = findBankerPlayer(
+          newOffer,
+          allPlayers,
+          excludedIds,
+          availablePositions
+        );
         setBankerPlayer(newBankerPlayer);
         if (newBankerPlayer) {
           setOfferedBankerIds((prev) => new Set([...prev, newBankerPlayer.id]));
@@ -178,49 +189,30 @@ export default function RoundView({
               </span>
             </div>
             <div className="grid grid-cols-2 xl:grid-cols-1 gap-0">
-              {rankedBoard.map((c, rank) => {
-                const isOpened = c.opened;
-                const isHeld   = localCases.indexOf(c) === heldIndex;
-                // Keep held case hidden in all phases except 'reveal', so the
-                // player never knows their case's value until it is opened.
-                const isHidden = isHeld && phase !== 'reveal';
-                return (
-                  <div
-                    key={c.number}
-                    className={`flex items-center gap-1.5 px-2 py-0.5 border-b border-gray-700/50 transition-opacity ${
-                      isOpened && !isHidden ? 'opacity-30' : ''
-                    }`}
-                  >
-                    <span className="text-gray-500 text-xs w-4 flex-shrink-0">
-                      {isHidden ? '?' : rank + 1}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <span
-                        className={`text-xs font-semibold truncate block ${
-                          isHidden
-                            ? 'text-blue-300 italic'
-                            : isOpened
-                            ? 'line-through text-gray-500'
-                            : isHeld
-                            ? 'text-blue-300'
-                            : 'text-white'
-                        }`}
-                        style={{ fontSize: '0.6rem' }}
-                      >
-                        {isHidden ? '🔒 Your Case' : c.player.name}
-                      </span>
-                    </div>
+              {rankedBoard.map((c, rank) => (
+                <div
+                  key={c.number}
+                  className="flex items-center gap-1.5 px-2 py-0.5 border-b border-gray-700/50"
+                >
+                  <span className="text-gray-500 text-xs w-4 flex-shrink-0">
+                    {rank + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
                     <span
-                      className={`font-bold flex-shrink-0 ${
-                        isHidden ? 'text-blue-300' : valueColor(c.player.value)
-                      } ${isOpened && !isHidden ? 'line-through' : ''}`}
-                      style={{ fontSize: '0.65rem' }}
+                      className="text-xs font-semibold truncate block text-white"
+                      style={{ fontSize: '0.6rem' }}
                     >
-                      {isHidden ? '?' : c.player.value}
+                      {c.player.name}
                     </span>
                   </div>
-                );
-              })}
+                  <span
+                    className={`font-bold flex-shrink-0 ${valueColor(c.player.value)}`}
+                    style={{ fontSize: '0.65rem' }}
+                  >
+                    {c.player.value}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -408,6 +400,7 @@ export default function RoundView({
           offer={offer}
           player={bankerPlayer}
           roundLabel={`Round ${roundIndex + 1}`}
+          eliminatedPlayers={localCases.filter((c) => c.opened).map((c) => c.player)}
           onDeal={handleDeal}
           onNoDeal={handleNoDeal}
         />
