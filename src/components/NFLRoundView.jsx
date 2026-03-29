@@ -39,6 +39,7 @@ export default function NFLRoundView({
   const [finalPlayer, setFinalPlayer]       = useState(null);
   const [bankerPlayer, setBankerPlayer]     = useState(null);
   const [offeredBankerIds, setOfferedBankerIds] = useState(new Set());
+  const [caseSwapped, setCaseSwapped]       = useState(false);
 
   const totalGroups = OPEN_GROUPS.length;
   const rankedBoard = buildRankedBoard(localCases);
@@ -119,6 +120,7 @@ export default function NFLRoundView({
     const nextGroupIdx = groupIdx + 1;
     setGroupIdx(nextGroupIdx);
     setOffer(null);
+    setBankerPlayer(null);
 
     if (nextGroupIdx >= totalGroups) {
       setLocalCases((prev) =>
@@ -127,7 +129,12 @@ export default function NFLRoundView({
       setFinalPlayer(localCases[heldIndex].player);
       setPhase('reveal');
     } else {
-      setPhase('open');
+      const remainingCases = localCases.filter((c, i) => !c.opened && i !== heldIndex);
+      if (remainingCases.length === 1) {
+        setPhase('finalCase');
+      } else {
+        setPhase('open');
+      }
     }
   }
 
@@ -166,6 +173,11 @@ export default function NFLRoundView({
             Player locked in — add them to your roster!
           </p>
         )}
+        {phase === 'finalCase' && (
+          <p className="text-gray-300 text-sm">
+            One case remains — keep your pick or switch?
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col xl:flex-row gap-4">
@@ -182,21 +194,31 @@ export default function NFLRoundView({
               {rankedBoard.map((c, rank) => (
                 <div
                   key={c.number}
-                  className="flex items-center gap-1.5 px-2 py-0.5 border-b border-gray-700/50"
+                  className={`flex items-center gap-1.5 px-2 py-0.5 border-b border-gray-700/50 ${
+                    c.opened ? 'opacity-40' : ''
+                  }`}
                 >
                   <span className="text-gray-500 text-xs w-4 flex-shrink-0">
-                    {rank + 1}
+                    {c.opened ? (
+                      <span className="text-red-500 font-bold" aria-label="Eliminated">✕</span>
+                    ) : (
+                      rank + 1
+                    )}
                   </span>
                   <div className="flex-1 min-w-0">
                     <span
-                      className="text-xs font-semibold truncate block text-white"
+                      className={`text-xs font-semibold truncate block ${
+                        c.opened ? 'line-through text-gray-500' : 'text-white'
+                      }`}
                       style={{ fontSize: '0.6rem' }}
                     >
                       {c.player.name}
                     </span>
                   </div>
                   <span
-                    className={`font-bold flex-shrink-0 ${colorFn(c.player.value)}`}
+                    className={`font-bold flex-shrink-0 ${
+                      c.opened ? 'text-gray-600' : colorFn(c.player.value)
+                    }`}
                     style={{ fontSize: '0.65rem' }}
                   >
                     {formatNFLStat(position, c.player.value)}
@@ -260,7 +282,7 @@ export default function NFLRoundView({
           {phase === 'reveal' && finalPlayer && (
             <div className="mt-3 bg-gray-800 border-2 border-green-500 rounded-2xl p-5 text-center max-w-md mx-auto shadow-xl shadow-green-500/10">
               <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">
-                {dealAccepted ? "Banker's Offer Accepted!" : 'Your pick!'}
+                {dealAccepted ? "Banker's Offer Accepted!" : caseSwapped ? 'Final Case Taken!' : 'Your pick!'}
               </p>
               <h2 className="text-white font-extrabold text-xl mb-1">
                 {finalPlayer.name}
@@ -273,7 +295,7 @@ export default function NFLRoundView({
               </div>
               <p className="text-gray-500 text-xs mb-4">{statLbl}</p>
 
-              {dealAccepted && heldIndex !== null && localCases[heldIndex] && (
+              {(dealAccepted || caseSwapped) && heldIndex !== null && localCases[heldIndex] && (
                 <div className="mb-4 bg-gray-700/50 border border-gray-600 rounded-xl p-3">
                   <p className="text-gray-400 text-xs uppercase tracking-widest mb-1">
                     Your case contained:
@@ -376,6 +398,55 @@ export default function NFLRoundView({
           statLabel={statLbl}
         />
       )}
+
+      {/* Final case swap modal */}
+      {phase === 'finalCase' && heldIndex !== null && (() => {
+        const lastCaseIndex = localCases.findIndex((c, i) => !c.opened && i !== heldIndex);
+        if (lastCaseIndex === -1) return null;
+        const lastCase = localCases[lastCaseIndex];
+        return (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4">
+            <div className="bg-gray-900 border-2 border-blue-500 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl shadow-blue-500/20 animate-in fade-in zoom-in duration-300">
+              <div className="text-5xl mb-4">🏈</div>
+              <p className="text-gray-400 text-sm uppercase tracking-widest mb-1">Final Decision</p>
+              <h2 className="text-white font-extrabold text-2xl mb-4">One Case Left!</h2>
+              <p className="text-gray-300 text-sm mb-6">
+                Only <span className="text-yellow-400 font-bold">Case #{lastCase.number}</span> remains.
+                Keep your original <span className="text-blue-400 font-bold">Case #{localCases[heldIndex].number}</span> or switch?
+              </p>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => {
+                    setFinalPlayer(localCases[heldIndex].player);
+                    setLocalCases((prev) =>
+                      prev.map((c, i) => (i === heldIndex ? { ...c, opened: true } : c))
+                    );
+                    setPhase('reveal');
+                  }}
+                  className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-black text-base rounded-xl py-4 transition-colors shadow-lg cursor-pointer"
+                >
+                  Keep Case #{localCases[heldIndex].number} 🔒
+                </button>
+                <button
+                  onClick={() => {
+                    setCaseSwapped(true);
+                    setFinalPlayer(lastCase.player);
+                    setLocalCases((prev) =>
+                      prev.map((c, i) =>
+                        i === lastCaseIndex || i === heldIndex ? { ...c, opened: true } : c
+                      )
+                    );
+                    setPhase('reveal');
+                  }}
+                  className="flex-1 bg-orange-600 hover:bg-orange-500 text-white font-black text-base rounded-xl py-4 transition-colors shadow-lg cursor-pointer"
+                >
+                  Switch to Case #{lastCase.number} 🔄
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
