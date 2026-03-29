@@ -30,12 +30,34 @@ export function valueColor(value) {
 // ─── Banker player selection ───────────────────────────────────────────────
 // Find the real player whose PPG best matches the banker's offer, excluding
 // any player in the provided exclusion set (ranking-board cases + already-
-// offered banker picks this round).  Prefers the highest-PPG player at or
-// below the offer ("roll down"); falls back to the closest player above the
-// offer only when every eligible player exceeds it.
-export function findBankerPlayer(offer, allPlayers, excludedIds) {
-  const eligible = allPlayers.filter((p) => !excludedIds.has(p.id));
+// offered banker picks this round + already-chosen players from prior rounds).
+// Restricts candidates to players that fit one of the remaining open roster
+// positions; falls back to all non-excluded players if no position match is
+// found.  Prefers the highest-PPG player at or below the offer ("roll down");
+// falls back to the closest player above the offer only when every eligible
+// player exceeds it.
+//
+// availablePositions – array of ROUND_SHORT slot keys that are still unfilled
+// (e.g. ['PG', 'C', '6th Man']).  A '6th Man' entry means any position is
+// acceptable for that slot, so if it is present every player is position-
+// eligible.
+export function findBankerPlayer(offer, allPlayers, excludedIds, availablePositions) {
+  let eligible = allPlayers.filter((p) => !excludedIds.has(p.id));
   if (eligible.length === 0) return null;
+
+  // Filter to players whose position fits one of the remaining roster slots.
+  if (availablePositions && availablePositions.length > 0) {
+    const anyPosition = availablePositions.includes('6th Man');
+    if (!anyPosition) {
+      const positionFiltered = eligible.filter((p) =>
+        availablePositions.includes(p.position)
+      );
+      // Only narrow down if we actually found matching players.
+      if (positionFiltered.length > 0) {
+        eligible = positionFiltered;
+      }
+    }
+  }
 
   // Sort descending by PPG so atOrBelow[0] is the highest value ≤ offer.
   const sorted = [...eligible].sort((a, b) => b.value - a.value);

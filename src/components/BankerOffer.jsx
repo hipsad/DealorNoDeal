@@ -1,6 +1,6 @@
 import { valueColor } from '../utils/gameLogic';
 
-export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabel }) {
+export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabel, eliminatedPlayers = [] }) {
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4">
       <div className="bg-gray-900 border-2 border-yellow-500 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl shadow-yellow-500/20 animate-in fade-in zoom-in duration-300">
@@ -13,7 +13,7 @@ export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabe
         </p>
 
         {/* Offer value */}
-        <div className="bg-gray-800 rounded-xl py-4 px-6 mb-6 inline-block w-full">
+        <div className="bg-gray-800 rounded-xl py-4 px-6 mb-4 inline-block w-full">
           {player ? (
             <>
               <p className={`text-2xl font-extrabold text-white mb-1`}>{player.name}</p>
@@ -28,6 +28,25 @@ export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabe
             </>
           )}
         </div>
+
+        {/* Eliminated players tracker */}
+        {eliminatedPlayers.length > 0 && (
+          <div className="mb-4 text-left">
+            <p className="text-gray-500 text-xs uppercase tracking-widest mb-1.5 text-center">
+              Eliminated ({eliminatedPlayers.length})
+            </p>
+            <div className="bg-gray-800 rounded-xl px-3 py-2 max-h-32 overflow-y-auto">
+              {eliminatedPlayers.map((p) => (
+                <div key={p.id} className="flex items-center justify-between py-0.5">
+                  <span className="text-gray-400 text-xs truncate mr-2">{p.name}</span>
+                  <span className={`text-xs font-bold flex-shrink-0 ${valueColor(p.value)}`}>
+                    {p.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <p className="text-gray-400 text-xs mb-6">
           Based on the average value of remaining cases.
