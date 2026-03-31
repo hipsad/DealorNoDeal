@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import {
   NFL_PLAYERS,
   NFL_ROUND_SHORT,
@@ -7,101 +7,20 @@ import {
   pickRandomNFL,
 } from '../data/nflPlayers';
 
-// ESPN unofficial NFL athlete endpoint – no auth required for basic player data.
-// Does not include career stats; only used to supplement the player list with
-// current roster names.  Falls back gracefully to the static dataset.
-async function fetchNFLPlayersFromAPI() {
-  const res = await fetch(
-    'https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes?limit=100&active=true',
-    { signal: AbortSignal.timeout(6000) }
-  );
-  if (!res.ok) throw new Error(`NFL API error ${res.status}`);
-  return res.json();
-}
-
-// Convert an ESPN athlete entry to our internal shape.
-// Career stats are unavailable from this endpoint, so value is set to null
-// and filled in with a positional default when the player is used.
-function espnToNFLPlayer(athlete, idOffset) {
-  const posMap = {
-    QB: 'QB', WR: 'WR', RB: 'RB', CB: 'CB', SS: 'S', FS: 'S',
-    DE: 'EDGE', OLB: 'EDGE', LB: 'EDGE',
-  };
-  const rawPos = athlete.position?.abbreviation || '';
-  const position = posMap[rawPos] || null;
-  if (!position) return null; // skip non-matching positions
-  return {
-    id: idOffset + athlete.id,
-    name: athlete.displayName || `${athlete.firstName} ${athlete.lastName}`,
-    position,
-    value: null,
-    active: true,
-    era: '2020s',
-  };
-}
+// Player stats are sourced from nflverse (https://github.com/nflverse/nflverse-data).
+// Active players use verified 2024 regular-season stats:
+//   QB   → passing TDs   CB   → interceptions
+//   WR   → receiving yards  S    → tackles
+//   RB   → rushing TDs   EDGE → sacks
 
 export function useNFLApi() {
-  const [apiPlayers, setApiPlayers] = useState(null);
-  const [apiError, setApiError]     = useState(null);
-  const [loading, setLoading]       = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const data = await fetchNFLPlayersFromAPI();
-        if (!cancelled) {
-          const items = data.items || [];
-          let converted = items
-            .map((a, i) => espnToNFLPlayer(a, 9000 + i * 10))
-            .filter(Boolean);
-          setApiPlayers(converted.length > 0 ? converted : null);
-        }
-      } catch {
-        if (!cancelled) setApiError('Using built-in NFL player dataset.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
-
-  // Build the merged pool for a single position.
+  // Build the pool for a single position from the static dataset.
   const getPool = useCallback(
-    (position, includeHistorical) => {
-      let pool = NFL_PLAYERS.filter(
+    (position, includeHistorical) =>
+      NFL_PLAYERS.filter(
         (p) => p.position === position && (includeHistorical || p.active)
-      );
-
-      if (apiPlayers) {
-        const existingNames = new Set(pool.map((p) => p.name.toLowerCase()));
-        // Fallback stat values assigned to API-sourced players that lack a stat value.
-        // These are mid-range estimates for each position's 2024 season stat scale:
-        //   QB  → ~150 career TDs (approximate active player average before season stats)
-        //   WR  → ~700 season yards (low-end starter threshold)
-        //   RB  → ~8  season rush TDs (average starter)
-        //   CB  → ~3  season INTs (average starter)
-        //   S   → ~70 season tackles (average starter)
-        //   EDGE→ ~7  season sacks (average starter)
-        const defaults = {
-          QB: 20, WR: 750, RB: 8, CB: 3, S: 75, EDGE: 7,
-        };
-        const extra = apiPlayers
-          .filter(
-            (p) =>
-              p.position === position &&
-              !existingNames.has(p.name.toLowerCase())
-          )
-          .map((p) => ({
-            ...p,
-            value: p.value ?? defaults[position] ?? 20,
-          }));
-        pool = [...pool, ...extra];
-      }
-
-      return pool;
-    },
-    [apiPlayers]
+      ),
+    []
   );
 
   // Build the computer's hidden 6-player roster (one per position).
@@ -120,11 +39,6 @@ export function useNFLApi() {
   const buildRoundCases = useCallback(
     (position, includeHistorical, usedIds = new Set()) => {
       let pool = getPool(position, includeHistorical);
-      // If the active-only pool is too small to fill 26 cases, automatically
-      // include historical players so the round always has a full set of cases.
-      if (pool.length < 26) {
-        pool = getPool(position, true);
-      }
       const available = pool.filter((p) => !usedIds.has(p.id));
       const source = available.length >= 26 ? available : pool;
 
@@ -144,8 +58,8 @@ export function useNFLApi() {
   );
 
   return {
-    loading,
-    apiError,
+    loading: false,
+    apiError: null,
     getPool,
     buildComputerRoster,
     buildRoundCases,
