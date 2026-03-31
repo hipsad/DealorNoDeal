@@ -28,7 +28,7 @@ export default function GameSetup({ onStart, loading }) {
             <span className="text-yellow-400 font-semibold">26 mystery briefcases</span> appear,
             each hiding a random NBA player. A{' '}
             <span className="text-white font-semibold">value ranking board</span> shows all 26
-            players sorted by career PPG — but you don't know which case holds which player.
+            players sorted by composite impact score (PPG, RPG, APG, SPG, BPG) — but you don't know which case holds which player.
             Pick one briefcase to hold.
           </li>
           <li>
@@ -43,7 +43,7 @@ export default function GameSetup({ onStart, loading }) {
             original pick. Then assign the player to any open roster slot.
           </li>
           <li>
-            After all 6 rounds, your roster's total recent-season PPG is compared to the{' '}
+            After all 6 rounds, your roster's total impact score is compared to the{' '}
             <span className="text-red-400 font-semibold">computer's hidden team</span>. Highest
             total wins!
           </li>

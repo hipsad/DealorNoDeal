@@ -30,7 +30,7 @@ export default function FinalResult({ playerRoster, computerRoster, onPlayAgain,
           <span className={`font-bold ${valueColor(playerScore / 6)}`}>
             {formatScore(playerScore)}
           </span>{' '}
-          total PPG vs the computer's{' '}
+          total impact vs the computer's{' '}
           <span className={`font-bold ${valueColor(compScore / 6)}`}>
             {formatScore(compScore)}
           </span>
@@ -55,11 +55,10 @@ export default function FinalResult({ playerRoster, computerRoster, onPlayAgain,
             ))}
           </div>
           <div className="mt-4 pt-4 border-t border-gray-700 text-center">
-            <span className="text-gray-400 text-sm">Total: </span>
+            <span className="text-gray-400 text-sm">Total Score: </span>
             <span className={`font-extrabold text-2xl ${valueColor(playerScore / 6)}`}>
               {formatScore(playerScore)}
             </span>
-            <span className="text-gray-400 text-sm"> PPG</span>
           </div>
         </div>
 
@@ -79,11 +78,10 @@ export default function FinalResult({ playerRoster, computerRoster, onPlayAgain,
             ))}
           </div>
           <div className="mt-4 pt-4 border-t border-gray-700 text-center">
-            <span className="text-gray-400 text-sm">Total: </span>
+            <span className="text-gray-400 text-sm">Total Score: </span>
             <span className={`font-extrabold text-2xl ${valueColor(compScore / 6)}`}>
               {formatScore(compScore)}
             </span>
-            <span className="text-gray-400 text-sm"> PPG</span>
           </div>
         </div>
       </div>
@@ -120,9 +118,17 @@ export default function FinalResult({ playerRoster, computerRoster, onPlayAgain,
                             {player.name}
                           </span>
                           <br />
-                          <span className={`text-xs ${valueColor(player.value)}`}>
-                            {player.value} PPG
+                          <span className={`text-xs font-bold ${valueColor(player.value)}`}>
+                            {player.value} Score
                           </span>
+                          {player.stats && (
+                            <>
+                              <br />
+                              <span className="text-gray-500" style={{ fontSize: '0.65rem' }}>
+                                {player.stats.ppg}p / {player.stats.rpg}r / {player.stats.apg}a
+                              </span>
+                            </>
+                          )}
                         </>
                       ) : '—'}
                     </td>
@@ -136,9 +142,17 @@ export default function FinalResult({ playerRoster, computerRoster, onPlayAgain,
                             {comp.name}
                           </span>
                           <br />
-                          <span className={`text-xs ${valueColor(comp.value)}`}>
-                            {comp.value} PPG
+                          <span className={`text-xs font-bold ${valueColor(comp.value)}`}>
+                            {comp.value} Score
                           </span>
+                          {comp.stats && (
+                            <>
+                              <br />
+                              <span className="text-gray-500" style={{ fontSize: '0.65rem' }}>
+                                {comp.stats.ppg}p / {comp.stats.rpg}r / {comp.stats.apg}a
+                              </span>
+                            </>
+                          )}
                         </>
                       ) : '—'}
                     </td>
@@ -181,11 +195,26 @@ function RosterRow({ posShort, player }) {
     );
   }
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-gray-400 text-xs w-16">{posShort}</span>
+    <div className="flex items-start gap-3">
+      <span className="text-gray-400 text-xs w-16 pt-0.5">{posShort}</span>
       <div className="flex-1 min-w-0">
         <p className="text-white font-semibold text-sm truncate">{player.name}</p>
-        <p className="text-gray-500 text-xs">{player.active ? '2024-25 PPG' : player.era}</p>
+        <p className="text-gray-500 text-xs">{player.active ? '2024-25 season' : player.era}</p>
+        {player.stats && (
+          <div className="flex gap-1.5 mt-0.5 flex-wrap">
+            {[
+              { label: 'PPG', val: player.stats.ppg },
+              { label: 'RPG', val: player.stats.rpg },
+              { label: 'APG', val: player.stats.apg },
+              { label: 'SPG', val: player.stats.spg },
+              { label: 'BPG', val: player.stats.bpg },
+            ].map(({ label, val }) => (
+              <span key={label} className="text-gray-400" style={{ fontSize: '0.6rem' }}>
+                <span className="text-white font-semibold">{val}</span> {label}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
       <span className={`font-extrabold text-base ${valueColor(player.value)}`}>
         {player.value}

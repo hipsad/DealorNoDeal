@@ -1,6 +1,6 @@
 import { valueColor } from '../utils/gameLogic';
 
-export default function Briefcase({ caseData, index, phase, onClick, isHeld, colorFn, statLabel }) {
+export default function Briefcase({ caseData, index, phase, onClick, isHeld, colorFn }) {
   const getColor = colorFn ?? valueColor;
   const { opened, player, number } = caseData;
 
@@ -33,8 +33,13 @@ export default function Briefcase({ caseData, index, phase, onClick, isHeld, col
             {player.name}
           </span>
           <span className={`font-bold ${getColor(player.value)}`} style={{ fontSize: '0.7rem' }}>
-            {statLabel ? `${player.value} ${statLabel}` : player.value}
+            {player.value}
           </span>
+          {player.stats && (
+            <span className="text-gray-400 leading-tight text-center" style={{ fontSize: '0.45rem' }}>
+              {player.stats.ppg}p/{player.stats.rpg}r/{player.stats.apg}a
+            </span>
+          )}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center h-full gap-0.5">
