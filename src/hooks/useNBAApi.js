@@ -8,6 +8,26 @@ const POS_MAP = {
   'F-C': 'PF', 'C-F': 'PF',
 };
 
+// Canonical position order matching ROUND_SHORT (PG=0, SG=1, SF=2, PF=3, C=4, 6th Man=5)
+const ROSTER_POSITION_ORDER = ['PG', 'SG', 'SF', 'PF', 'C'];
+
+// Sort a 6-player roster so each player appears at their canonical position slot.
+// Players whose position fills a slot come first (in order PG→SG→SF→PF→C);
+// any extra players (duplicate positions) go at the end as the 6th Man.
+function sortRosterByPosition(roster) {
+  const sorted = [];
+  const remaining = [...roster];
+  for (const pos of ROSTER_POSITION_ORDER) {
+    const idx = remaining.findIndex((p) => p.position === pos);
+    if (idx !== -1) {
+      sorted.push(remaining.splice(idx, 1)[0]);
+    }
+  }
+  // Any leftover players (duplicate positions) fill the 6th Man slot
+  sorted.push(...remaining);
+  return sorted;
+}
+
 function mapPosition(pos) {
   return POS_MAP[pos] || pos || 'SF';
 }
@@ -129,7 +149,7 @@ export function useNBAApi() {
       const usedAfterGood = new Set([...usedAfterGreat, ...pickedGood.map((p) => p.id)]);
       const pickedWeak  = weak.filter((p) => !usedAfterGood.has(p.id)).slice(0, weakCount);
 
-      const roster = shuffle([...pickedGreat, ...pickedGood, ...pickedWeak]);
+      const roster = sortRosterByPosition([...pickedGreat, ...pickedGood, ...pickedWeak]);
       return roster;
     },
     [getAllPool]
