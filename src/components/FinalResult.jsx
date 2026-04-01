@@ -127,6 +127,14 @@ export default function FinalResult({ playerRoster, computerRoster, onPlayAgain,
                               <span className="text-gray-500" style={{ fontSize: '0.65rem' }}>
                                 {player.stats.ppg}p / {player.stats.rpg}r / {player.stats.apg}a
                               </span>
+                              {player.stats.per != null && (
+                                <>
+                                  <br />
+                                  <span className="text-yellow-500" style={{ fontSize: '0.6rem' }}>
+                                    PER {player.stats.per} · TS% {(player.stats.ts_pct * 100).toFixed(1)}% · BPM {player.stats.bpm >= 0 ? `+${player.stats.bpm}` : player.stats.bpm}
+                                  </span>
+                                </>
+                              )}
                             </>
                           )}
                         </>
@@ -151,6 +159,14 @@ export default function FinalResult({ playerRoster, computerRoster, onPlayAgain,
                               <span className="text-gray-500" style={{ fontSize: '0.65rem' }}>
                                 {comp.stats.ppg}p / {comp.stats.rpg}r / {comp.stats.apg}a
                               </span>
+                              {comp.stats.per != null && (
+                                <>
+                                  <br />
+                                  <span className="text-yellow-500" style={{ fontSize: '0.6rem' }}>
+                                    PER {comp.stats.per} · TS% {(comp.stats.ts_pct * 100).toFixed(1)}% · BPM {comp.stats.bpm >= 0 ? `+${comp.stats.bpm}` : comp.stats.bpm}
+                                  </span>
+                                </>
+                              )}
                             </>
                           )}
                         </>
@@ -213,6 +229,11 @@ function RosterRow({ posShort, player }) {
                 <span className="text-white font-semibold">{val}</span> {label}
               </span>
             ))}
+            {player.stats.per != null && (
+              <span className="text-yellow-500 w-full" style={{ fontSize: '0.6rem' }}>
+                PER {player.stats.per} · TS% {(player.stats.ts_pct * 100).toFixed(1)}% · BPM {player.stats.bpm >= 0 ? `+${player.stats.bpm}` : player.stats.bpm}
+              </span>
+            )}
           </div>
         )}
       </div>

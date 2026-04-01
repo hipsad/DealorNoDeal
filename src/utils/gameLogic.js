@@ -1,17 +1,35 @@
 // ─── Composite value score ─────────────────────────────────────────────────
-// Players are ranked by a weighted impact score:
-//   PPG×1.0 + RPG×1.2 + APG×1.5 + SPG×2.0 + BPG×2.0
-// This rewards well-rounded production and defensive contributions.
-// Typical range: ~17 (low-impact role player) to ~91 (Wilt's historic season).
+// Players are ranked by a weighted impact score combining traditional box-score
+// stats with two key advanced metrics available from NBA stats APIs:
+//
+//   base     = PPG×1.0 + RPG×1.2 + APG×1.5 + SPG×2.0 + BPG×2.0
+//   advanced = (PER − 15) × 0.3  +  BPM × 0.5
+//
+// Advanced stats:
+//   PER  – Player Efficiency Rating (league avg ≈ 15; elite > 25)
+//   TS%  – True Shooting % (FG efficiency accounting for FTs and 3-pointers)
+//   BPM  – Box Plus/Minus (per-100-possession value above average, 0 = avg)
+//
+// Typical range: ~14 (bench role player) to ~105 (Wilt's 1962 historic season).
 export function computeValue(stats) {
-  return Math.round(
-    (stats.ppg * 1.0 + stats.rpg * 1.2 + stats.apg * 1.5 + stats.spg * 2.0 + stats.bpg * 2.0) * 10
-  ) / 10;
+  const base =
+    stats.ppg * 1.0 +
+    stats.rpg * 1.2 +
+    stats.apg * 1.5 +
+    stats.spg * 2.0 +
+    stats.bpg * 2.0;
+  const perBonus = stats.per != null ? (stats.per - 15) * 0.3 : 0;
+  const bpmBonus = stats.bpm != null ? stats.bpm * 0.5 : 0;
+  return Math.round((base + perBonus + bpmBonus) * 10) / 10;
 }
 
-// Return a short multi-line stats string (PPG / RPG / APG)
+// Return a short stats string showing advanced metrics when available
 export function shortStats(stats) {
   if (!stats) return '';
+  if (stats.per != null && stats.bpm != null) {
+    const bpmSign = stats.bpm >= 0 ? '+' : '';
+    return `PER ${stats.per}  TS% ${(stats.ts_pct * 100).toFixed(1)}%  BPM ${bpmSign}${stats.bpm}`;
+  }
   return `${stats.ppg}p  ${stats.rpg}r  ${stats.apg}a`;
 }
 
@@ -36,12 +54,12 @@ export function calcBankerOffer(closedCases, openCount) {
 export const OPEN_GROUPS = [6, 5, 4, 3, 2, 1, 1, 1, 1, 1]; // sum = 25
 
 // ─── Player value color ────────────────────────────────────────────────────
-// Thresholds calibrated to the composite impact score range (~17–91).
+// Thresholds calibrated to the enhanced composite impact score range (~14–105).
 export function valueColor(value) {
-  if (value >= 60) return 'text-emerald-400';
-  if (value >= 45) return 'text-green-400';
-  if (value >= 35) return 'text-yellow-400';
-  if (value >= 25) return 'text-orange-400';
+  if (value >= 70) return 'text-emerald-400';
+  if (value >= 55) return 'text-green-400';
+  if (value >= 40) return 'text-yellow-400';
+  if (value >= 27) return 'text-orange-400';
   return 'text-red-400';
 }
 

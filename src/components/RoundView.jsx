@@ -270,11 +270,11 @@ export default function RoundView({
           {/* Value color legend */}
           <div className="flex flex-wrap gap-2 justify-center text-xs mb-3">
             {[
-              { label: '60+ Score', cls: 'text-emerald-400' },
-              { label: '45-59',     cls: 'text-green-400' },
-              { label: '35-44',     cls: 'text-yellow-400' },
-              { label: '25-34',     cls: 'text-orange-400' },
-              { label: '<25',       cls: 'text-red-400' },
+              { label: '70+ Score', cls: 'text-emerald-400' },
+              { label: '55-69',     cls: 'text-green-400' },
+              { label: '40-54',     cls: 'text-yellow-400' },
+              { label: '27-39',     cls: 'text-orange-400' },
+              { label: '<27',       cls: 'text-red-400' },
             ].map(({ label, cls }) => (
               <span key={label} className={`${cls} font-semibold`}>
                 ■ {label}
@@ -310,19 +310,35 @@ export default function RoundView({
                 {finalPlayer.value} <span className="text-lg font-bold">Score</span>
               </div>
               {finalPlayer.stats && (
-                <div className="grid grid-cols-5 gap-1 mb-4 text-center">
-                  {[
-                    { label: 'PPG', val: finalPlayer.stats.ppg },
-                    { label: 'RPG', val: finalPlayer.stats.rpg },
-                    { label: 'APG', val: finalPlayer.stats.apg },
-                    { label: 'SPG', val: finalPlayer.stats.spg },
-                    { label: 'BPG', val: finalPlayer.stats.bpg },
-                  ].map(({ label, val }) => (
-                    <div key={label} className="bg-gray-700 rounded-lg py-1.5">
-                      <div className="text-white font-bold text-sm">{val}</div>
-                      <div className="text-gray-400 text-xs">{label}</div>
+                <div className="mb-4">
+                  <div className="grid grid-cols-5 gap-1 mb-1.5 text-center">
+                    {[
+                      { label: 'PPG', val: finalPlayer.stats.ppg },
+                      { label: 'RPG', val: finalPlayer.stats.rpg },
+                      { label: 'APG', val: finalPlayer.stats.apg },
+                      { label: 'SPG', val: finalPlayer.stats.spg },
+                      { label: 'BPG', val: finalPlayer.stats.bpg },
+                    ].map(({ label, val }) => (
+                      <div key={label} className="bg-gray-700 rounded-lg py-1.5">
+                        <div className="text-white font-bold text-sm">{val}</div>
+                        <div className="text-gray-400 text-xs">{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {finalPlayer.stats.per != null && (
+                    <div className="grid grid-cols-3 gap-1 text-center">
+                      {[
+                        { label: 'PER', val: finalPlayer.stats.per },
+                        { label: 'TS%', val: `${(finalPlayer.stats.ts_pct * 100).toFixed(1)}%` },
+                        { label: 'BPM', val: finalPlayer.stats.bpm >= 0 ? `+${finalPlayer.stats.bpm}` : finalPlayer.stats.bpm },
+                      ].map(({ label, val }) => (
+                        <div key={label} className="bg-gray-700/60 rounded-lg py-1">
+                          <div className="text-yellow-300 font-bold text-sm">{val}</div>
+                          <div className="text-gray-500 text-xs">{label}</div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
 
@@ -340,7 +356,10 @@ export default function RoundView({
                   </p>
                   {localCases[heldIndex].player.stats && (
                     <p className="text-gray-400 text-xs mt-1">
-                      {localCases[heldIndex].player.stats.ppg}p / {localCases[heldIndex].player.stats.rpg}r / {localCases[heldIndex].player.stats.apg}a / {localCases[heldIndex].player.stats.spg}s / {localCases[heldIndex].player.stats.bpg}b
+                      {localCases[heldIndex].player.stats.ppg}p / {localCases[heldIndex].player.stats.rpg}r / {localCases[heldIndex].player.stats.apg}a
+                      {localCases[heldIndex].player.stats.per != null && (
+                        <span className="text-yellow-400 ml-1">· PER {localCases[heldIndex].player.stats.per} · TS% {(localCases[heldIndex].player.stats.ts_pct * 100).toFixed(1)}% · BPM {localCases[heldIndex].player.stats.bpm >= 0 ? `+${localCases[heldIndex].player.stats.bpm}` : localCases[heldIndex].player.stats.bpm}</span>
+                      )}
                     </p>
                   )}
                 </div>
