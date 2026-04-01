@@ -85,6 +85,7 @@ export const PLAYERS = [
   { id: 36, name: 'Hal Greer',               position: 'SG', value: 37.5, active: false, era: '1967', stats: { ppg: 22.1, rpg: 5.9, apg: 3.8, spg: 1.0, bpg: 0.3 } },
   { id: 101, name: 'Vince Carter',           position: 'SG', value: 44.1, active: false, era: '2001', stats: { ppg: 27.6, rpg: 5.5, apg: 3.9, spg: 1.3, bpg: 0.7 } },
   { id: 102, name: 'Tracy McGrady',          position: 'SG', value: 53.2, active: false, era: '2003', stats: { ppg: 32.1, rpg: 6.5, apg: 5.5, spg: 1.7, bpg: 0.8 } },
+  { id: 156, name: 'George Gervin',          position: 'SG', value: 49.3, active: false, era: '1980', stats: { ppg: 33.1, rpg: 4.6, apg: 4.3, spg: 1.6, bpg: 0.5 } },
 
   // ─── SMALL FORWARDS (active) ─────────────────────────────────────────────
   { id: 37, name: 'LeBron James',            position: 'SF', value: 49.7, active: true,  era: '2000s', stats: { ppg: 24.0, rpg: 8.3, apg: 8.2, spg: 1.1, bpg: 0.6 } },
@@ -118,6 +119,7 @@ export const PLAYERS = [
   { id: 51, name: 'Carmelo Anthony',         position: 'SF', value: 43.5, active: false, era: '2013', stats: { ppg: 28.7, rpg: 6.9, apg: 2.6, spg: 0.9, bpg: 0.4 } },
   { id: 109, name: 'Grant Hill',             position: 'SF', value: 48.0, active: false, era: '1997', stats: { ppg: 21.6, rpg: 9.0, apg: 7.3, spg: 1.7, bpg: 0.6 } },
   { id: 110, name: 'James Worthy',           position: 'SF', value: 35.7, active: false, era: '1988', stats: { ppg: 19.7, rpg: 5.7, apg: 3.3, spg: 1.3, bpg: 0.8 } },
+  { id: 157, name: 'Paul Pierce',            position: 'SF', value: 46.3, active: false, era: '2006', stats: { ppg: 26.8, rpg: 6.7, apg: 4.7, spg: 1.6, bpg: 0.6 } },
 
   // ─── POWER FORWARDS (active) ─────────────────────────────────────────────
   { id: 60, name: 'Giannis Antetokounmpo',   position: 'PF', value: 58.6, active: true,  era: '2020s', stats: { ppg: 30.4, rpg: 11.5, apg: 6.5, spg: 1.2, bpg: 1.1 } },
