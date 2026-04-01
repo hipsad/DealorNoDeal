@@ -55,7 +55,7 @@ export default function NFLRoundView({
     if (index === heldIndex || localCases[index].opened) return;
 
     const updated = localCases.map((c, i) =>
-      i === index ? { ...c, opened: true } : c
+      i === index ? { ...c, opened: true, openedAt: openCount + 1 } : c
     );
     setLocalCases(updated);
 
@@ -144,6 +144,10 @@ export default function NFLRoundView({
 
   const needToOpen = phase === 'open' ? OPEN_GROUPS[groupIdx] - openedInGroup : 0;
   const openedCount = localCases.filter((c) => c.opened).length;
+  const sortedEliminatedPlayers = localCases
+    .filter((c) => c.opened)
+    .sort((a, b) => (b.openedAt ?? 0) - (a.openedAt ?? 0))
+    .map((c) => c.player);
 
   return (
     <div className="min-h-screen px-2 py-4 max-w-7xl mx-auto">
@@ -391,7 +395,7 @@ export default function NFLRoundView({
           offer={offer}
           player={bankerPlayer}
           roundLabel={NFL_ROUND_LABELS[roundIndex]}
-          eliminatedPlayers={localCases.filter((c) => c.opened).map((c) => c.player)}
+          eliminatedPlayers={sortedEliminatedPlayers}
           onDeal={handleDeal}
           onNoDeal={handleNoDeal}
           colorFn={colorFn}
