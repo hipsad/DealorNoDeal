@@ -266,11 +266,11 @@ export default function RoundView({
           {/* Value color legend */}
           <div className="flex flex-wrap gap-2 justify-center text-xs mb-3">
             {[
-              { label: '25+ PPG', cls: 'text-emerald-400' },
-              { label: '20-24',   cls: 'text-green-400' },
-              { label: '15-19',   cls: 'text-yellow-400' },
-              { label: '10-14',   cls: 'text-orange-400' },
-              { label: '<10',     cls: 'text-red-400' },
+              { label: '60+ Score', cls: 'text-emerald-400' },
+              { label: '45-59',     cls: 'text-green-400' },
+              { label: '35-44',     cls: 'text-yellow-400' },
+              { label: '25-34',     cls: 'text-orange-400' },
+              { label: '<25',       cls: 'text-red-400' },
             ].map(({ label, cls }) => (
               <span key={label} className={`${cls} font-semibold`}>
                 ■ {label}
@@ -302,11 +302,25 @@ export default function RoundView({
               <p className="text-gray-400 text-xs mb-1">
                 {finalPlayer.active ? 'Active' : finalPlayer.era}
               </p>
-              <div
-                className={`text-4xl font-black ${valueColor(finalPlayer.value)} mb-4`}
-              >
-                {finalPlayer.value} PPG
+              <div className={`text-3xl font-black ${valueColor(finalPlayer.value)} mb-1`}>
+                {finalPlayer.value} <span className="text-lg font-bold">Score</span>
               </div>
+              {finalPlayer.stats && (
+                <div className="grid grid-cols-5 gap-1 mb-4 text-center">
+                  {[
+                    { label: 'PPG', val: finalPlayer.stats.ppg },
+                    { label: 'RPG', val: finalPlayer.stats.rpg },
+                    { label: 'APG', val: finalPlayer.stats.apg },
+                    { label: 'SPG', val: finalPlayer.stats.spg },
+                    { label: 'BPG', val: finalPlayer.stats.bpg },
+                  ].map(({ label, val }) => (
+                    <div key={label} className="bg-gray-700 rounded-lg py-1.5">
+                      <div className="text-white font-bold text-sm">{val}</div>
+                      <div className="text-gray-400 text-xs">{label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Reveal what was hidden in the chosen case when a deal was accepted or case was swapped */}
               {(dealAccepted || caseSwapped) && heldIndex !== null && localCases[heldIndex] && (
@@ -318,8 +332,13 @@ export default function RoundView({
                     {localCases[heldIndex].player.name}
                   </p>
                   <p className={`text-lg font-black ${valueColor(localCases[heldIndex].player.value)}`}>
-                    {localCases[heldIndex].player.value} PPG
+                    {localCases[heldIndex].player.value} Score
                   </p>
+                  {localCases[heldIndex].player.stats && (
+                    <p className="text-gray-400 text-xs mt-1">
+                      {localCases[heldIndex].player.stats.ppg}p / {localCases[heldIndex].player.stats.rpg}r / {localCases[heldIndex].player.stats.apg}a / {localCases[heldIndex].player.stats.spg}s / {localCases[heldIndex].player.stats.bpg}b
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -377,8 +396,13 @@ export default function RoundView({
                         {player.name}
                       </p>
                       <p className={`text-xs font-bold ${valueColor(player.value)}`}>
-                        {player.value} PPG
+                        {player.value} Score
                       </p>
+                      {player.stats && (
+                        <p className="text-gray-500 leading-tight" style={{ fontSize: '0.55rem' }}>
+                          {player.stats.ppg}p/{player.stats.rpg}r/{player.stats.apg}a
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <span className="text-gray-600 text-xs">—</span>
@@ -405,8 +429,13 @@ export default function RoundView({
                         {player.name}
                       </p>
                       <p className={`text-xs font-bold ${valueColor(player.value)}`}>
-                        {player.value} PPG
+                        {player.value} Score
                       </p>
+                      {player.stats && (
+                        <p className="text-gray-500 leading-tight" style={{ fontSize: '0.55rem' }}>
+                          {player.stats.ppg}p/{player.stats.rpg}r/{player.stats.apg}a
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <span className="text-gray-600 text-xs">—</span>

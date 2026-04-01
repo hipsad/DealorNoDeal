@@ -25,7 +25,8 @@ export default function ModeSelect({ onSelectNBA, onSelectNFL }) {
           <h2 className="text-white font-extrabold text-2xl mb-2">NBA</h2>
           <p className="text-gray-400 text-sm text-center">
             Build a 5-man roster + bench. Win players across PG, SG, SF, PF,
-            C, and 6th Man rounds. Score is based on career PPG.
+            C, and 6th Man rounds. Players are ranked by a composite impact
+              score (PPG, RPG, APG, SPG, BPG).
           </p>
           <span className="mt-4 text-yellow-400 font-bold text-sm group-hover:underline">
             Play NBA →

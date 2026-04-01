@@ -76,8 +76,8 @@ export function useNBAApi() {
           )
           .map((p) => ({
             ...p,
-            // Assign a value if we don't have stats (mid-tier default)
-            value: p.value ?? 12 + Math.random() * 6,
+            // Assign a mid-tier composite score if we don't have real stats
+            value: p.value ?? 25 + Math.random() * 10,
           }));
         pool = [...pool, ...extra];
       }
@@ -97,7 +97,7 @@ export function useNBAApi() {
           .filter((p) => !existingNames.has(p.name.toLowerCase()))
           .map((p) => ({
             ...p,
-            value: p.value ?? 12 + Math.random() * 6,
+            value: p.value ?? 25 + Math.random() * 10,
           }));
         pool = [...pool, ...extra];
       }
@@ -108,15 +108,15 @@ export function useNBAApi() {
   );
 
   // Build the computer's 6-player hidden roster using tiered selection:
-  // 1-3 great players (≥24 PPG), 1-3 good-to-great players (14–23.9 PPG),
-  // and at least 2 weak players (<14 PPG).
+  // 1-3 great players (≥45 score), 1-3 good-to-great players (30–44 score),
+  // and at least 2 weak players (<30 score).
   const buildComputerRoster = useCallback(
     (includeHistorical) => {
       const allPool = getAllPool(includeHistorical);
 
-      const great = shuffle(allPool.filter((p) => p.value >= 24));
-      const good  = shuffle(allPool.filter((p) => p.value >= 14 && p.value < 24));
-      const weak  = shuffle(allPool.filter((p) => p.value < 14));
+      const great = shuffle(allPool.filter((p) => p.value >= 45));
+      const good  = shuffle(allPool.filter((p) => p.value >= 30 && p.value < 45));
+      const weak  = shuffle(allPool.filter((p) => p.value < 30));
 
       // Randomly choose how many great players (1-3); remaining non-weak slots fill with good
       const greatCount = 1 + Math.floor(Math.random() * 3); // 1, 2, or 3
@@ -146,13 +146,13 @@ export function useNBAApi() {
       // If fewer than 26 available after deduplication, relax the usedIds filter
       const source = available.length >= 26 ? available : pool;
 
-      // Skew distribution: guarantee MIN_LOW_PPG–(MIN_LOW_PPG + LOW_PPG_VARIANCE - 1)
-      // players under 15 PPG per round (currently 7 or 8 out of 26 cases).
-      const MIN_LOW_PPG_PLAYERS  = 7;
-      const LOW_PPG_PLAYER_VARIANCE = 2;
-      const lowPool  = shuffle(source.filter((p) => p.value < 15));
-      const highPool = shuffle(source.filter((p) => p.value >= 15));
-      const lowCount = MIN_LOW_PPG_PLAYERS + Math.floor(Math.random() * LOW_PPG_PLAYER_VARIANCE);
+      // Skew distribution: guarantee MIN_LOW_SCORE–(MIN_LOW_SCORE + LOW_SCORE_VARIANCE - 1)
+      // players under 30 composite score per round (currently 7 or 8 out of 26 cases).
+      const MIN_LOW_SCORE_PLAYERS  = 7;
+      const LOW_SCORE_PLAYER_VARIANCE = 2;
+      const lowPool  = shuffle(source.filter((p) => p.value < 30));
+      const highPool = shuffle(source.filter((p) => p.value >= 30));
+      const lowCount = MIN_LOW_SCORE_PLAYERS + Math.floor(Math.random() * LOW_SCORE_PLAYER_VARIANCE);
       const pickedLow  = lowPool.slice(0, Math.min(lowCount, lowPool.length));
       const pickedHigh = highPool.slice(0, 26 - pickedLow.length);
       return shuffle([...pickedLow, ...pickedHigh]);

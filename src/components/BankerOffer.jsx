@@ -1,6 +1,6 @@
 import { valueColor } from '../utils/gameLogic';
 
-export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabel, eliminatedPlayers = [], colorFn, statLabel = 'PPG' }) {
+export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabel, eliminatedPlayers = [], colorFn }) {
   const getColor = colorFn ?? valueColor;
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4">
@@ -10,7 +10,7 @@ export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabe
         <p className="text-gray-400 text-sm uppercase tracking-widest mb-1">The Banker</p>
         <h2 className="text-white font-extrabold text-2xl mb-2">{roundLabel} Round</h2>
         <p className="text-gray-300 text-sm mb-4">
-          {player ? "I'll give you this player:" : "I'll offer you a player guaranteed to average:"}
+          {player ? "I'll give you this player:" : "I'll offer you a player with an impact score of:"}
         </p>
 
         {/* Offer value */}
@@ -19,13 +19,29 @@ export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabe
             <>
               <p className={`text-2xl font-extrabold text-white mb-1`}>{player.name}</p>
               <p className="text-gray-400 text-xs mb-2">{player.position}</p>
-              <span className={`text-5xl font-black ${getColor(player.value)}`}>{player.value}</span>
-              <span className="text-gray-400 text-lg ml-2">{statLabel}</span>
+              <span className={`text-4xl font-black ${getColor(player.value)}`}>{player.value}</span>
+              <span className="text-gray-400 text-sm ml-1">Score</span>
+              {player.stats && (
+                <div className="mt-2 grid grid-cols-5 gap-1 text-center">
+                  {[
+                    { label: 'PPG', val: player.stats.ppg },
+                    { label: 'RPG', val: player.stats.rpg },
+                    { label: 'APG', val: player.stats.apg },
+                    { label: 'SPG', val: player.stats.spg },
+                    { label: 'BPG', val: player.stats.bpg },
+                  ].map(({ label, val }) => (
+                    <div key={label} className="bg-gray-700 rounded-lg py-1">
+                      <div className="text-white font-bold" style={{ fontSize: '0.7rem' }}>{val}</div>
+                      <div className="text-gray-400" style={{ fontSize: '0.55rem' }}>{label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </>
           ) : (
             <>
               <span className={`text-5xl font-black ${getColor(offer)}`}>{offer}</span>
-              <span className="text-gray-400 text-lg ml-2">{statLabel}</span>
+              <span className="text-gray-400 text-lg ml-2">Score</span>
             </>
           )}
         </div>
@@ -50,7 +66,7 @@ export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabe
         )}
 
         <p className="text-gray-400 text-xs mb-6">
-          Based on the average value of remaining cases.
+          Based on the average impact score of remaining cases.
         </p>
 
         <div className="flex gap-4">

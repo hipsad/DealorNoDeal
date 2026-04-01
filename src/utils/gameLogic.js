@@ -1,7 +1,24 @@
+// ─── Composite value score ─────────────────────────────────────────────────
+// Players are ranked by a weighted impact score:
+//   PPG×1.0 + RPG×1.2 + APG×1.5 + SPG×2.0 + BPG×2.0
+// This rewards well-rounded production and defensive contributions.
+// Typical range: ~17 (low-impact role player) to ~91 (Wilt's historic season).
+export function computeValue(stats) {
+  return Math.round(
+    (stats.ppg * 1.0 + stats.rpg * 1.2 + stats.apg * 1.5 + stats.spg * 2.0 + stats.bpg * 2.0) * 10
+  ) / 10;
+}
+
+// Return a short multi-line stats string (PPG / RPG / APG)
+export function shortStats(stats) {
+  if (!stats) return '';
+  return `${stats.ppg}p  ${stats.rpg}r  ${stats.apg}a`;
+}
+
 // ─── Banker offer calculation ──────────────────────────────────────────────
-// The banker offer is a fraction of the expected value of the remaining cases.
-// Classic Deal or No Deal bankers typically offer 80-95% of expected value
-// after several cases are opened.
+// The banker offer is a fraction of the expected composite value of the
+// remaining cases. Classic Deal or No Deal bankers typically offer 80-95% of
+// expected value after several cases are opened.
 
 export function calcBankerOffer(closedCases, openCount) {
   if (closedCases.length === 0) return 0;
@@ -19,28 +36,24 @@ export function calcBankerOffer(closedCases, openCount) {
 export const OPEN_GROUPS = [6, 5, 4, 3, 2, 1, 1, 1, 1, 1]; // sum = 25
 
 // ─── Player value color ────────────────────────────────────────────────────
+// Thresholds calibrated to the composite impact score range (~17–91).
 export function valueColor(value) {
-  if (value >= 25) return 'text-emerald-400';
-  if (value >= 20) return 'text-green-400';
-  if (value >= 15) return 'text-yellow-400';
-  if (value >= 10) return 'text-orange-400';
+  if (value >= 60) return 'text-emerald-400';
+  if (value >= 45) return 'text-green-400';
+  if (value >= 35) return 'text-yellow-400';
+  if (value >= 25) return 'text-orange-400';
   return 'text-red-400';
 }
 
 // ─── Banker player selection ───────────────────────────────────────────────
-// Find the real player whose PPG best matches the banker's offer, excluding
-// any player in the provided exclusion set (ranking-board cases + already-
-// offered banker picks this round + already-chosen players from prior rounds).
-// Restricts candidates to players that fit one of the remaining open roster
-// positions; falls back to all non-excluded players if no position match is
-// found.  Prefers the highest-PPG player at or below the offer ("roll down");
-// falls back to the closest player above the offer only when every eligible
-// player exceeds it.
-//
-// availablePositions – array of ROUND_SHORT slot keys that are still unfilled
-// (e.g. ['PG', 'C', '6th Man']).  A '6th Man' entry means any position is
-// acceptable for that slot, so if it is present every player is position-
-// eligible.
+// Find the real player whose composite impact score best matches the banker's
+// offer, excluding any player in the provided exclusion set (ranking-board
+// cases + already-offered banker picks this round + already-chosen players
+// from prior rounds).  Restricts candidates to players that fit one of the
+// remaining open roster positions; falls back to all non-excluded players if
+// no position match is found.  Prefers the highest-scoring player at or below
+// the offer ("roll down"); falls back to the closest player above the offer
+// only when every eligible player exceeds it.
 export function findBankerPlayer(offer, allPlayers, excludedIds, availablePositions) {
   let eligible = allPlayers.filter((p) => !excludedIds.has(p.id));
   if (eligible.length === 0) return null;
@@ -59,21 +72,21 @@ export function findBankerPlayer(offer, allPlayers, excludedIds, availablePositi
     }
   }
 
-  // Sort descending by PPG so atOrBelow[0] is the highest value ≤ offer.
+  // Sort descending by composite score so atOrBelow[0] is the highest value ≤ offer.
   const sorted = [...eligible].sort((a, b) => b.value - a.value);
   const atOrBelow = sorted.filter((p) => p.value <= offer);
   if (atOrBelow.length > 0) {
-    // Randomly select among players within 0.5 PPG of the top match to add variety
+    // Randomly select among players within 1.0 score of the top match to add variety
     const best = atOrBelow[0];
-    const nearEqual = atOrBelow.filter((p) => best.value - p.value <= 0.5);
+    const nearEqual = atOrBelow.filter((p) => best.value - p.value <= 1.0);
     return nearEqual[Math.floor(Math.random() * nearEqual.length)];
   }
 
   // All eligible players are above the offer — return the one closest to it,
-  // again randomising among players within 0.5 PPG of each other.
+  // again randomising among players within 1.0 score of each other.
   const aboveSorted = [...eligible].sort((a, b) => a.value - b.value);
   const closest = aboveSorted[0];
-  const nearEqual = aboveSorted.filter((p) => p.value - closest.value <= 0.5);
+  const nearEqual = aboveSorted.filter((p) => p.value - closest.value <= 1.0);
   return nearEqual[Math.floor(Math.random() * nearEqual.length)];
 }
 
