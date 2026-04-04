@@ -8,6 +8,7 @@ import {
   findNFLBankerPlayer,
   formatNFLStat,
   nflSecondaryStats,
+  nflAdvancedStats,
 } from '../utils/nflGameLogic';
 import { NFL_ROUND_LABELS, NFL_ROUND_SHORT } from '../data/nflPlayers';
 
@@ -300,16 +301,31 @@ export default function NFLRoundView({
               </div>
               <p className="text-gray-500 text-xs mb-2">{statLbl}</p>
               {finalPlayer.stats && (() => {
-                const secStats = nflSecondaryStats(position, finalPlayer.stats);
-                if (secStats.length === 0) return null;
+                const basicStats = nflSecondaryStats(position, finalPlayer.stats);
+                const advStats   = nflAdvancedStats(position, finalPlayer.stats);
+                if (basicStats.length === 0 && advStats.length === 0) return null;
                 return (
-                  <div className="grid gap-1 text-center mb-3" style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(secStats.length, 1), 6)}, 1fr)` }}>
-                    {secStats.map(({ label, val }) => (
-                      <div key={label} className="bg-gray-700 rounded-lg py-1">
-                        <div className="text-yellow-300 font-bold" style={{ fontSize: '0.68rem' }}>{val}</div>
-                        <div className="text-gray-400" style={{ fontSize: '0.55rem' }}>{label}</div>
+                  <div className="mb-3">
+                    {basicStats.length > 0 && (
+                      <div className="grid gap-1 text-center mb-1" style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(basicStats.length, 1), 6)}, 1fr)` }}>
+                        {basicStats.map(({ label, val }) => (
+                          <div key={label} className="bg-gray-700 rounded-lg py-1">
+                            <div className="text-white font-bold" style={{ fontSize: '0.68rem' }}>{val}</div>
+                            <div className="text-gray-400" style={{ fontSize: '0.55rem' }}>{label}</div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
+                    {advStats.length > 0 && (
+                      <div className="grid gap-1 text-center" style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(advStats.length, 1), 6)}, 1fr)` }}>
+                        {advStats.map(({ label, val }) => (
+                          <div key={label} className="bg-gray-700/60 rounded-lg py-1">
+                            <div className="text-yellow-300 font-bold" style={{ fontSize: '0.68rem' }}>{val}</div>
+                            <div className="text-gray-400" style={{ fontSize: '0.55rem' }}>{label}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })()}
@@ -326,16 +342,31 @@ export default function NFLRoundView({
                     {formatNFLStat(position, localCases[heldIndex].player.value)} {statLbl}
                   </p>
                   {localCases[heldIndex].player.stats && (() => {
-                    const heldSecStats = nflSecondaryStats(position, localCases[heldIndex].player.stats);
-                    if (heldSecStats.length === 0) return null;
+                    const heldBasic = nflSecondaryStats(position, localCases[heldIndex].player.stats);
+                    const heldAdv   = nflAdvancedStats(position, localCases[heldIndex].player.stats);
+                    if (heldBasic.length === 0 && heldAdv.length === 0) return null;
                     return (
-                      <div className="grid gap-1 text-center mt-2" style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(heldSecStats.length, 1), 6)}, 1fr)` }}>
-                        {heldSecStats.map(({ label, val }) => (
-                          <div key={label} className="bg-gray-700 rounded-lg py-1">
-                            <div className="text-yellow-300 font-bold" style={{ fontSize: '0.65rem' }}>{val}</div>
-                            <div className="text-gray-400" style={{ fontSize: '0.5rem' }}>{label}</div>
+                      <div className="mt-2">
+                        {heldBasic.length > 0 && (
+                          <div className="grid gap-1 text-center mb-1" style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(heldBasic.length, 1), 6)}, 1fr)` }}>
+                            {heldBasic.map(({ label, val }) => (
+                              <div key={label} className="bg-gray-700 rounded-lg py-1">
+                                <div className="text-white font-bold" style={{ fontSize: '0.65rem' }}>{val}</div>
+                                <div className="text-gray-400" style={{ fontSize: '0.5rem' }}>{label}</div>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        )}
+                        {heldAdv.length > 0 && (
+                          <div className="grid gap-1 text-center" style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(heldAdv.length, 1), 6)}, 1fr)` }}>
+                            {heldAdv.map(({ label, val }) => (
+                              <div key={label} className="bg-gray-700/60 rounded-lg py-1">
+                                <div className="text-yellow-300 font-bold" style={{ fontSize: '0.65rem' }}>{val}</div>
+                                <div className="text-gray-400" style={{ fontSize: '0.5rem' }}>{label}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     );
                   })()}
@@ -430,6 +461,7 @@ export default function NFLRoundView({
           colorFn={colorFn}
           statLabel={statLbl}
           secondaryStats={bankerPlayer?.stats ? nflSecondaryStats(position, bankerPlayer.stats) : undefined}
+          advancedStats={bankerPlayer?.stats ? nflAdvancedStats(position, bankerPlayer.stats) : undefined}
         />
       )}
 
