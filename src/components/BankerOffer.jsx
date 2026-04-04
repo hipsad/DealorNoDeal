@@ -23,7 +23,7 @@ export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabe
               <span className="text-gray-400 text-sm ml-1">Score</span>
               {/* NFL-style secondary stats grid (position-specific) */}
               {secondaryStats && secondaryStats.length > 0 && (
-                <div className={`mt-2 grid gap-1 text-center`} style={{ gridTemplateColumns: `repeat(${secondaryStats.length}, 1fr)` }}>
+                <div className="mt-2 grid gap-1 text-center" style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(secondaryStats.length, 1), 6)}, 1fr)` }}>
                   {secondaryStats.map(({ label, val }) => (
                     <div key={label} className="bg-gray-700 rounded-lg py-1">
                       <div className="text-yellow-300 font-bold" style={{ fontSize: '0.68rem' }}>{val}</div>

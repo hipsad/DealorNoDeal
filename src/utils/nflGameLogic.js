@@ -84,7 +84,7 @@ export function nflSecondaryStats(position, stats) {
       ];
     case 'WR':
       return [
-        { label: 'Rec Yds',  val: stats.rec_yds.toLocaleString() },
+        { label: 'Rec Yds',  val: typeof stats.rec_yds === 'number' ? stats.rec_yds.toLocaleString() : stats.rec_yds },
         { label: 'Rec TDs',  val: stats.rec_tds },
         { label: 'YPR',      val: stats.yds_per_rec },
         { label: 'Catch%',   val: `${stats.catch_pct}%` },
@@ -92,7 +92,7 @@ export function nflSecondaryStats(position, stats) {
     case 'RB':
       return [
         { label: 'Rush TDs', val: stats.rush_tds },
-        { label: 'Rush Yds', val: stats.rush_yds.toLocaleString() },
+        { label: 'Rush Yds', val: typeof stats.rush_yds === 'number' ? stats.rush_yds.toLocaleString() : stats.rush_yds },
         { label: 'YPC',      val: stats.yds_per_carry },
         { label: 'Rec Yds',  val: stats.rec_yds },
       ];
