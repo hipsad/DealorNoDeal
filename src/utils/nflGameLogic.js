@@ -70,48 +70,85 @@ export function computeNFLValue(position, stats) {
 }
 
 // ─── Secondary stats for display ──────────────────────────────────────────
-// Returns an array of { label, val } objects for the secondary stat row shown
-// below the primary stat in banker-offer cards, reveal panels, and results.
+// Returns an array of { label, val } objects for the primary (counting) stat
+// row shown below the composite score in banker-offer cards, reveal panels,
+// and results.  For the advanced/efficiency row use nflAdvancedStats().
 export function nflSecondaryStats(position, stats) {
   if (!stats) return [];
   switch (position) {
     case 'QB':
       return [
-        { label: 'Pass TDs',  val: stats.pass_tds },
-        { label: 'Pass Rtg',  val: stats.passer_rating },
-        { label: 'Cmp%',      val: `${stats.comp_pct}%` },
-        { label: 'YPA',       val: stats.yds_per_att },
+        { label: 'Pass TDs', val: stats.pass_tds },
+        { label: 'Cmp%',     val: `${stats.comp_pct}%` },
       ];
     case 'WR':
       return [
-        { label: 'Rec Yds',  val: typeof stats.rec_yds === 'number' ? stats.rec_yds.toLocaleString() : stats.rec_yds },
-        { label: 'Rec TDs',  val: stats.rec_tds },
-        { label: 'YPR',      val: stats.yds_per_rec },
-        { label: 'Catch%',   val: `${stats.catch_pct}%` },
+        { label: 'Rec Yds', val: typeof stats.rec_yds === 'number' ? stats.rec_yds.toLocaleString() : stats.rec_yds },
+        { label: 'Rec TDs', val: stats.rec_tds },
       ];
     case 'RB':
       return [
         { label: 'Rush TDs', val: stats.rush_tds },
         { label: 'Rush Yds', val: typeof stats.rush_yds === 'number' ? stats.rush_yds.toLocaleString() : stats.rush_yds },
-        { label: 'YPC',      val: stats.yds_per_carry },
-        { label: 'Rec Yds',  val: stats.rec_yds },
       ];
     case 'CB':
       return [
-        { label: 'INTs',       val: stats.ints },
-        { label: 'Pass Def',   val: stats.pass_def },
+        { label: 'INTs',     val: stats.ints },
+        { label: 'Pass Def', val: stats.pass_def },
+      ];
+    case 'S':
+      return [
+        { label: 'Tackles', val: stats.tackles },
+      ];
+    case 'EDGE':
+      return [
+        { label: 'Sacks', val: stats.sacks },
+        { label: 'TFL',   val: stats.tfl },
+      ];
+    default:
+      return [];
+  }
+}
+
+// ─── Advanced / efficiency stats for display ──────────────────────────────
+// Returns an array of { label, val } objects for the second (advanced) stat
+// row, shown in yellow to mirror the NBA's PER / TS% / BPM treatment.
+//
+//   QB   → Passer Rating + YPA          (efficiency metrics)
+//   WR   → YPR + Catch%                 (per-reception efficiency)
+//   RB   → YPC + Rec Yds                (carry efficiency + versatility)
+//   CB   → Passer Rtg Allowed           (coverage quality metric)
+//   S    → INTs + Pass Def              (playmaking / coverage stats)
+//   EDGE → QB Hits + Forced Fumbles     (disruption rate stats)
+export function nflAdvancedStats(position, stats) {
+  if (!stats) return [];
+  switch (position) {
+    case 'QB':
+      return [
+        { label: 'Pass Rtg', val: stats.passer_rating },
+        { label: 'YPA',      val: stats.yds_per_att },
+      ];
+    case 'WR':
+      return [
+        { label: 'YPR',    val: stats.yds_per_rec },
+        { label: 'Catch%', val: `${stats.catch_pct}%` },
+      ];
+    case 'RB':
+      return [
+        { label: 'YPC',     val: stats.yds_per_carry },
+        { label: 'Rec Yds', val: stats.rec_yds },
+      ];
+    case 'CB':
+      return [
         { label: 'PR Allowed', val: stats.passer_rtg_allowed },
       ];
     case 'S':
       return [
-        { label: 'Tackles',  val: stats.tackles },
         { label: 'INTs',     val: stats.ints },
         { label: 'Pass Def', val: stats.pass_def },
       ];
     case 'EDGE':
       return [
-        { label: 'Sacks',   val: stats.sacks },
-        { label: 'TFL',     val: stats.tfl },
         { label: 'QB Hits', val: stats.qb_hits },
         { label: 'FF',      val: stats.forced_fumbles },
       ];

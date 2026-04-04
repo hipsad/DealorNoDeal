@@ -1,6 +1,6 @@
 import { valueColor } from '../utils/gameLogic';
 
-export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabel, eliminatedPlayers = [], colorFn, secondaryStats }) {
+export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabel, eliminatedPlayers = [], colorFn, secondaryStats, advancedStats }) {
   const getColor = colorFn ?? valueColor;
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4">
@@ -26,6 +26,17 @@ export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabe
                 <div className="mt-2 grid gap-1 text-center" style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(secondaryStats.length, 1), 6)}, 1fr)` }}>
                   {secondaryStats.map(({ label, val }) => (
                     <div key={label} className="bg-gray-700 rounded-lg py-1">
+                      <div className="text-white font-bold" style={{ fontSize: '0.68rem' }}>{val}</div>
+                      <div className="text-gray-400" style={{ fontSize: '0.55rem' }}>{label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* NFL-style advanced/efficiency stats (second row, yellow — mirrors NBA's PER/TS%/BPM) */}
+              {advancedStats && advancedStats.length > 0 && (
+                <div className="mt-1 grid gap-1 text-center" style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(advancedStats.length, 1), 6)}, 1fr)` }}>
+                  {advancedStats.map(({ label, val }) => (
+                    <div key={label} className="bg-gray-700/60 rounded-lg py-1">
                       <div className="text-yellow-300 font-bold" style={{ fontSize: '0.68rem' }}>{val}</div>
                       <div className="text-gray-400" style={{ fontSize: '0.55rem' }}>{label}</div>
                     </div>
