@@ -1,4 +1,4 @@
-import { calcNFLTeamRecord, getNFLWinner, nflValueColor, nflStatLabel, formatNFLStat } from '../utils/nflGameLogic';
+import { calcNFLTeamRecord, getNFLWinner, nflValueColor, nflStatLabel, formatNFLStat, nflSecondaryStats } from '../utils/nflGameLogic';
 import { NFL_ROUND_LABELS, NFL_ROUND_SHORT } from '../data/nflPlayers';
 
 export default function NFLFinalResult({ playerRoster, computerRoster, onPlayAgain, onBackToMenu }) {
@@ -114,6 +114,8 @@ export default function NFLFinalResult({ playerRoster, computerRoster, onPlayAga
                 const fmtP = formatNFLStat(slot, p?.value);
                 const fmtC = formatNFLStat(slot, c?.value);
                 const colP = (v) => nflValueColor(slot, v);
+                const secP = p?.stats ? nflSecondaryStats(slot, p.stats) : [];
+                const secC = c?.stats ? nflSecondaryStats(slot, c.stats) : [];
                 return (
                   <tr key={slot} className="border-b border-gray-700/50">
                     <td className="py-2 text-gray-400 font-semibold">{slot}</td>
@@ -127,6 +129,15 @@ export default function NFLFinalResult({ playerRoster, computerRoster, onPlayAga
                           <span className={`text-xs ${colP(p.value)}`}>
                             {fmtP} {stat}
                           </span>
+                          {secP.length > 0 && (
+                            <div className="flex flex-wrap gap-1 justify-center mt-1">
+                              {secP.map(({ label, val }) => (
+                                <span key={label} className="text-gray-400 text-xs">
+                                  <span className="text-gray-500">{label}:</span> {val}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </>
                       ) : '—'}
                     </td>
@@ -143,6 +154,15 @@ export default function NFLFinalResult({ playerRoster, computerRoster, onPlayAga
                           <span className={`text-xs ${colP(c.value)}`}>
                             {fmtC} {stat}
                           </span>
+                          {secC.length > 0 && (
+                            <div className="flex flex-wrap gap-1 justify-center mt-1">
+                              {secC.map(({ label, val }) => (
+                                <span key={label} className="text-gray-400 text-xs">
+                                  <span className="text-gray-500">{label}:</span> {val}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </>
                       ) : '—'}
                     </td>
@@ -184,14 +204,24 @@ function NFLRosterRow({ posShort, player }) {
   }
   const stat = nflStatLabel(posShort);
   const colorCls = nflValueColor(posShort, player.value);
+  const secondary = player.stats ? nflSecondaryStats(posShort, player.stats) : [];
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-gray-400 text-xs w-16">{posShort}</span>
+    <div className="flex items-start gap-3">
+      <span className="text-gray-400 text-xs w-16 mt-0.5">{posShort}</span>
       <div className="flex-1 min-w-0">
         <p className="text-white font-semibold text-sm truncate">{player.name}</p>
         <p className="text-gray-500 text-xs">{player.active ? 'Active' : player.era}</p>
+        {secondary.length > 0 && (
+          <div className="flex flex-wrap gap-x-2 mt-0.5">
+            {secondary.map(({ label, val }) => (
+              <span key={label} className="text-gray-400" style={{ fontSize: '0.6rem' }}>
+                <span className="text-gray-500">{label}:</span> {val}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
-      <span className={`font-extrabold text-base ${colorCls}`}>
+      <span className={`font-extrabold text-base ${colorCls} flex-shrink-0`}>
         {formatNFLStat(posShort, player.value)}
         <span className="text-gray-500 text-xs ml-1">{stat}</span>
       </span>

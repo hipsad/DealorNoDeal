@@ -1,6 +1,6 @@
 import { valueColor } from '../utils/gameLogic';
 
-export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabel, eliminatedPlayers = [], colorFn }) {
+export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabel, eliminatedPlayers = [], colorFn, secondaryStats }) {
   const getColor = colorFn ?? valueColor;
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4">
@@ -21,7 +21,19 @@ export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabe
               <p className="text-gray-400 text-xs mb-2">{player.position}</p>
               <span className={`text-4xl font-black ${getColor(player.value)}`}>{player.value}</span>
               <span className="text-gray-400 text-sm ml-1">Score</span>
-              {player.stats && (
+              {/* NFL-style secondary stats grid (position-specific) */}
+              {secondaryStats && secondaryStats.length > 0 && (
+                <div className={`mt-2 grid gap-1 text-center`} style={{ gridTemplateColumns: `repeat(${secondaryStats.length}, 1fr)` }}>
+                  {secondaryStats.map(({ label, val }) => (
+                    <div key={label} className="bg-gray-700 rounded-lg py-1">
+                      <div className="text-yellow-300 font-bold" style={{ fontSize: '0.68rem' }}>{val}</div>
+                      <div className="text-gray-400" style={{ fontSize: '0.55rem' }}>{label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* NBA-style stats grid (traditional box-score stats) */}
+              {!secondaryStats && player.stats && (
                 <div className="mt-2">
                   <div className="grid grid-cols-5 gap-1 text-center mb-1">
                     {[
