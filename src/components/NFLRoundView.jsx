@@ -7,6 +7,7 @@ import {
   nflStatLabel,
   findNFLBankerPlayer,
   formatNFLStat,
+  nflSecondaryStats,
 } from '../utils/nflGameLogic';
 import { NFL_ROUND_LABELS, NFL_ROUND_SHORT } from '../data/nflPlayers';
 
@@ -297,7 +298,21 @@ export default function NFLRoundView({
               <div className={`text-4xl font-black ${colorFn(finalPlayer.value)} mb-1`}>
                 {formatNFLStat(position, finalPlayer.value)}
               </div>
-              <p className="text-gray-500 text-xs mb-4">{statLbl}</p>
+              <p className="text-gray-500 text-xs mb-2">{statLbl}</p>
+              {finalPlayer.stats && (() => {
+                const secStats = nflSecondaryStats(position, finalPlayer.stats);
+                if (secStats.length === 0) return null;
+                return (
+                  <div className="grid gap-1 text-center mb-3" style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(secStats.length, 1), 6)}, 1fr)` }}>
+                    {secStats.map(({ label, val }) => (
+                      <div key={label} className="bg-gray-700 rounded-lg py-1">
+                        <div className="text-yellow-300 font-bold" style={{ fontSize: '0.68rem' }}>{val}</div>
+                        <div className="text-gray-400" style={{ fontSize: '0.55rem' }}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
 
               {(dealAccepted || caseSwapped) && heldIndex !== null && localCases[heldIndex] && (
                 <div className="mb-4 bg-gray-700/50 border border-gray-600 rounded-xl p-3">
@@ -310,6 +325,20 @@ export default function NFLRoundView({
                   <p className={`text-lg font-black ${colorFn(localCases[heldIndex].player.value)}`}>
                     {formatNFLStat(position, localCases[heldIndex].player.value)} {statLbl}
                   </p>
+                  {localCases[heldIndex].player.stats && (() => {
+                    const heldSecStats = nflSecondaryStats(position, localCases[heldIndex].player.stats);
+                    if (heldSecStats.length === 0) return null;
+                    return (
+                      <div className="grid gap-1 text-center mt-2" style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(heldSecStats.length, 1), 6)}, 1fr)` }}>
+                        {heldSecStats.map(({ label, val }) => (
+                          <div key={label} className="bg-gray-700 rounded-lg py-1">
+                            <div className="text-yellow-300 font-bold" style={{ fontSize: '0.65rem' }}>{val}</div>
+                            <div className="text-gray-400" style={{ fontSize: '0.5rem' }}>{label}</div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
 
@@ -400,6 +429,7 @@ export default function NFLRoundView({
           onNoDeal={handleNoDeal}
           colorFn={colorFn}
           statLabel={statLbl}
+          secondaryStats={bankerPlayer?.stats ? nflSecondaryStats(position, bankerPlayer.stats) : undefined}
         />
       )}
 

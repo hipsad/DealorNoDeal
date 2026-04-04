@@ -1,6 +1,6 @@
 import { valueColor } from '../utils/gameLogic';
 
-export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabel, eliminatedPlayers = [], colorFn }) {
+export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabel, eliminatedPlayers = [], colorFn, secondaryStats }) {
   const getColor = colorFn ?? valueColor;
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4">
@@ -21,20 +21,48 @@ export default function BankerOffer({ offer, player, onDeal, onNoDeal, roundLabe
               <p className="text-gray-400 text-xs mb-2">{player.position}</p>
               <span className={`text-4xl font-black ${getColor(player.value)}`}>{player.value}</span>
               <span className="text-gray-400 text-sm ml-1">Score</span>
-              {player.stats && (
-                <div className="mt-2 grid grid-cols-5 gap-1 text-center">
-                  {[
-                    { label: 'PPG', val: player.stats.ppg },
-                    { label: 'RPG', val: player.stats.rpg },
-                    { label: 'APG', val: player.stats.apg },
-                    { label: 'SPG', val: player.stats.spg },
-                    { label: 'BPG', val: player.stats.bpg },
-                  ].map(({ label, val }) => (
+              {/* NFL-style secondary stats grid (position-specific) */}
+              {secondaryStats && secondaryStats.length > 0 && (
+                <div className="mt-2 grid gap-1 text-center" style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(secondaryStats.length, 1), 6)}, 1fr)` }}>
+                  {secondaryStats.map(({ label, val }) => (
                     <div key={label} className="bg-gray-700 rounded-lg py-1">
-                      <div className="text-white font-bold" style={{ fontSize: '0.7rem' }}>{val}</div>
+                      <div className="text-yellow-300 font-bold" style={{ fontSize: '0.68rem' }}>{val}</div>
                       <div className="text-gray-400" style={{ fontSize: '0.55rem' }}>{label}</div>
                     </div>
                   ))}
+                </div>
+              )}
+              {/* NBA-style stats grid (traditional box-score stats) */}
+              {!secondaryStats && player.stats && (
+                <div className="mt-2">
+                  <div className="grid grid-cols-5 gap-1 text-center mb-1">
+                    {[
+                      { label: 'PPG', val: player.stats.ppg },
+                      { label: 'RPG', val: player.stats.rpg },
+                      { label: 'APG', val: player.stats.apg },
+                      { label: 'SPG', val: player.stats.spg },
+                      { label: 'BPG', val: player.stats.bpg },
+                    ].map(({ label, val }) => (
+                      <div key={label} className="bg-gray-700 rounded-lg py-1">
+                        <div className="text-white font-bold" style={{ fontSize: '0.7rem' }}>{val}</div>
+                        <div className="text-gray-400" style={{ fontSize: '0.55rem' }}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {player.stats.per != null && (
+                    <div className="grid grid-cols-3 gap-1 text-center">
+                      {[
+                        { label: 'PER', val: player.stats.per },
+                        { label: 'TS%', val: `${(player.stats.ts_pct * 100).toFixed(1)}%` },
+                        { label: 'BPM', val: player.stats.bpm >= 0 ? `+${player.stats.bpm}` : player.stats.bpm },
+                      ].map(({ label, val }) => (
+                        <div key={label} className="bg-gray-700/60 rounded-lg py-1">
+                          <div className="text-yellow-300 font-bold" style={{ fontSize: '0.7rem' }}>{val}</div>
+                          <div className="text-gray-400" style={{ fontSize: '0.55rem' }}>{label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </>
